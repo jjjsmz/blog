@@ -1,7 +1,7 @@
 ---
 title: AWS Lambda で環境変数が変更されたときも，コールドスタートになります
 pubDate: 2024-04-06
-updatedDate: 2026-04-19
+updatedDate: 2026-05-30
 description: AWS Lambda で環境変数が変わったとき，コールドスタートになるのか試してみました．
 tags: ['python', 'aws', 'tips']
 ---
@@ -13,7 +13,7 @@ AWS Lambda において，ハンドラ外のコードはコールドスタート
 
 [^1]: [Developers.ioの記事](https://dev.classmethod.jp/articles/lambda-outside-handler-running-first/)
 
-# 実行環境
+## 実行環境
 
 実際に使用したコード，インフラ構成は [こちら](https://github.com/jjjsmz/playground/tree/aa89c993e46e718cf646ce5e38380bfc27d3bc52/aws/lambda-cold-start)．
 
@@ -23,14 +23,14 @@ Lambda 関数は以下の実装になっています．
 
 https://github.com/jjjsmz/playground/blob/aa89c993e46e718cf646ce5e38380bfc27d3bc52/aws/lambda-cold-start/src/main.py#L1-L24
 
-# 実験
+## 実験
 
 1. 前節で示したコードをデプロイし
 2. デプロイした関数の関数 URL に対し，500ms ごとにリクエストを送信をし続ける
 3. 環境変数を手動で変更
    1. ハンドラ外で定義した値に変化がみられるか確認
 
-# 結果
+## 結果
 
 なんと，環境変数を変更した直後に，ハンドラ外で定義した変数，読み込んだ環境変数の値が変わっていました！
 環境変数を変更した直後は，コールドスタートになるため，init が入り，少しレスポンスが遅くなっていることを確認できます．
