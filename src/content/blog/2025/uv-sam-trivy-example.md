@@ -1,7 +1,7 @@
 ---
 title: uv, AWS SAM, Trivy を使った快適な開発環境
 pubDate: 2025-03-16
-updatedDate: 2026-04-19
+updatedDate: 2026-05-30
 description: uv, AWS SAM, Trivy を使った Python の快適な開発環境, CI/CD 環境を構築しました．
 tags: ['aws', 'python', 'devops']
 ---
@@ -15,7 +15,7 @@ https://github.com/jjjsmz/uv-sam-trivy-template
 ### uv, ruff
 
 Python の開発環境作成には，[uv](https://docs.astral.sh/uv/) を使用しています．
-1 年ほど前からすごく話題になっており，Python 開発に用いるツールチェーンを簡単に一括で設定でき，今後の Python 開発の主流になりそうです．
+Python 開発に用いるツールチェーンをまとめて扱えるため，個人開発ではかなり便利です．
 まだ 1.0 に到達しておらず，破壊的変更や機能追加があるため，業務レベルでは扱う気にはなっていませんが，
 技術のキャッチアップのために使用しています．
 
@@ -27,7 +27,7 @@ formatter についても ruff で行えます．
 これまで，私は [black](https://black.readthedocs.io/en/stable/) を使用することが多かったですが，
 ruff は，black とほぼ同じ出力を出すように意図して作られていると，[公式ドキュメント](https://docs.astral.sh/ruff/formatter/#philosophy)にも記載されているため，uv を使う環境下では，ruff を使っていこうと思っています．
 
-設定は，以下のようにしています．いずれもデフォルト値ですが，デフォルト値が今後変わったとしても，守っておきたいものは明示的に記載しています．
+設定は以下の通りです．デフォルト値でも，守りたいものは明示しています．
 
 https://github.com/jjjsmz/uv-sam-trivy-template/blob/e6f3d419cf95233fe7e01272295f22a5a61a6e93/pyproject.toml#L33-L37
 
@@ -51,7 +51,7 @@ Trivy は，コンテナイメージだけでなく，多くの異なるプラ�
 
 ### PR 作成時のチェック
 
-今回は一人で作成するだけの環境のため，基本的に PR は main ブランチにしか出しません．
+一人で使う環境なので，PR は基本的に main ブランチ向けだけにしています．
 そのため，main をターゲットとした PR 作成のみ，チェックを行うようにしています．
 
 main に入る前にチェックするものは以下の 4 項目です．

@@ -1,6 +1,7 @@
 ---
 title: ALB のターゲットに Lambda を指定する際のアーキテクチャメモ
 pubDate: 2025-12-15
+updatedDate: 2026-05-30
 description: ALB のターゲットに Lambda 関数を指定するアーキテクチャの最小構成と注意点
 tags: ['aws', 'architecture']
 ---
@@ -8,16 +9,16 @@ tags: ['aws', 'architecture']
 ## はじめに
 
 ALB (Application Load Balancer) のターゲットは，インスタンス，IP，Lambda が選択できます．
-よく使われるのは，インスタンスか IP ですが，Lambda という選択肢もあり，これを使ったことがなかったため軽く使ってみました．
+よく使うのはインスタンスか IP ですが，Lambda も選べるので最小構成で試しました．
 
 Lambda をターゲットに選択できるようになったのは，2018 年 11 月かららしいです．かなり昔からある機能なんですね．
 https://aws.amazon.com/jp/about-aws/whats-new/2018/11/alb-can-now-invoke-lambda-functions-to-serve-https-requests/
 
-本記事では最小構成での設定手順と，ALB のターゲットに Lambda にする際の特有の注意点 (ヘルスチェック, レスポンスフォーマット) をまとめます．
+本稿では，設定手順と ALB のターゲットに Lambda を使う際の注意点 (ヘルスチェック，レスポンスフォーマット) を整理します．
 
 ## 構成
 
-今回は検証用途のため，最低限の構成で試しました．
+検証用途なので，構成は最低限です．
 
 - VPC
   - Public Subnet * 1
@@ -210,7 +211,5 @@ Connection: keep-alive
 
 ## おわりに
 
-今回は，ALB のターゲットに Lambda 関数を指定するアーキテクチャを試してみました．
-Lambda の手前に API Gateway を置くことが多く用いられるアーキテクチャですが，API Gateway はタイムアウトの制限があったり，ログの設定やインターナル API を設定しようとすると少々面倒だったりするため，ALB を使う選択肢もあり得ると思います．
-
-既存の ALB を使いまわす場合やメンテナンス時のみ，優先度を変更して Lambda から返すといったケースでは，Lambda をターゲットにするのも選択肢としてあり得るでしょう．
+ALB のターゲットに Lambda 関数を指定する構成は，既存の ALB を使いまわしたい場合や，メンテナンス時だけ優先度を切り替えて Lambda から返したい場合に選択肢になります．
+API Gateway より向いているかどうかは，要件と運用で判断するのがよさそうです．
