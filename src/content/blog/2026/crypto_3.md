@@ -34,7 +34,7 @@ tags: ['crypto', 'network']
 
 ### 前提
 
-[第1章](/blog/2026/crypto_1)で解説した以下の要素を使います．
+[第 1 章](/blog/2026/crypto_1)で解説した以下の要素を使います．
 
 - 大きな素数 $p$
 - $\mathrm{GF}(p)^*$ の生成元 $g$
@@ -91,7 +91,7 @@ CDH 仮定は DLP よりも弱い仮定ですが，実用上は十分な安全�
 
 ## ECDH 鍵共有
 
-DH 鍵共有の楕円曲線版が **ECDH (Elliptic Curve Diffie-Hellman)** です．[第2章](/blog/2026/crypto_2)で解説した楕円曲線の群構造を利用します．
+DH 鍵共有の楕円曲線版が **ECDH (Elliptic Curve Diffie-Hellman)** です．[第 2 章](/blog/2026/crypto_2)で解説した楕円曲線の群構造を利用します．
 
 ### プロトコル
 
@@ -128,7 +128,7 @@ DH 鍵共有の楕円曲線版が **ECDH (Elliptic Curve Diffie-Hellman)** で�
 
 ## X25519
 
-**X25519** は，[第2章](/blog/2026/crypto_2)で扱った Curve25519 を用いた ECDH 鍵共有の具体的な実装仕様です ([RFC 7748](https://datatracker.ietf.org/doc/html/rfc7748))．
+**X25519** は，[第 2 章](/blog/2026/crypto_2)で扱った Curve25519 を用いた ECDH 鍵共有の具体的な実装仕様です ([RFC 7748](https://datatracker.ietf.org/doc/html/rfc7748))．
 
 ### 特徴
 

@@ -14,7 +14,7 @@ tags: ['crypto']
 
 1. **抽象代数学の基礎** (本稿)
 2. [楕円曲線](/blog/2026/crypto_2)
-3. DH 鍵共有，ECDH 鍵共有
+3. [DH 鍵共有，ECDH 鍵共有](/blog/2026/crypto_3)
 4. 共通鍵暗号 (AES など)
 5. 公開鍵暗号 (RSA, ECC など)
 6. TLS
