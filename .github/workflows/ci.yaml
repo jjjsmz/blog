@@ -14,7 +14,7 @@ jobs:
     outputs:
       cache-hit: ${{ steps.restore-cache.outputs.cache-hit }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: setup node
         uses: actions/setup-node@v6
         with:
@@ -37,7 +37,7 @@ jobs:
       matrix:
         task: [ "fmt:check", "textlint", "astro check", "lint" ]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: setup node
         uses: actions/setup-node@v6
         with:
