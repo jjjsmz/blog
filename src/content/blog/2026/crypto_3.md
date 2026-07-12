@@ -1,6 +1,7 @@
 ---
 title: 暗号学入門 3. DH 鍵共有・ECDH 鍵共有編
 pubDate: 2026-05-31
+updatedDate: 2026-07-12
 description: IT エンジニアのための暗号学入門．その3 Diffie-Hellman 鍵共有と楕円曲線版 ECDH．
 tags: ['crypto', 'network']
 ---
@@ -14,8 +15,8 @@ tags: ['crypto', 'network']
 1. [抽象代数学の基礎](/blog/2026/crypto_1)
 2. [楕円曲線](/blog/2026/crypto_2)
 3. **DH 鍵共有，ECDH 鍵共有** (本稿)
-4. 共通鍵暗号 (AES など)
-5. 公開鍵暗号 (RSA, ECC など)
+4. [共通鍵暗号 (AES など)](/blog/2026/crypto_4)
+5. [公開鍵暗号 (RSA, ECC など)](/blog/2026/crypto_5)
 6. TLS
 7. (余談) SSH
 
@@ -87,7 +88,7 @@ $A = g^a \bmod p$ から $a$ を求めることは離散対数問題 (DLP) で�
 - **CDH 仮定 (Computational Diffie-Hellman)**: $g^a$ と $g^b$ が与えられたとき，$g^{ab}$ を計算することは困難
 - **DDH 仮定 (Decisional Diffie-Hellman)**: $g^a, g^b, g^c$ が与えられたとき，$g^c$ が $g^{ab}$ であるか否かを判定することは困難
 
-CDH 仮定は DLP よりも弱い仮定ですが，実用上は十分な安全性を提供します．
+CDH 仮定は DLP の困難性より強い仮定です (DLP が解ければ CDH も解けるため)．とはいえ現状 DLP を経由しない解法は知られておらず，実用上は十分な安全性の根拠になります．
 
 ## ECDH 鍵共有
 
