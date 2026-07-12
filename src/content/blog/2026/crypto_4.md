@@ -157,7 +157,7 @@ AES は 128 ビットのブロックしか暗号化できません．実際の�
 
 ### AES-GCM
 
-[NIST SP 800-38D](https://csrc.nist.gov/pubs/sp/800/38d/final) で標準化された AEAD アルゴリズムです．
+[NIST SP 800-38D](https://csrc.nist.gov/pubs/sp/800/38/d/final) で標準化された AEAD アルゴリズムです．
 
 **入力:**
 - 鍵 K (128 / 256 ビット)
@@ -206,10 +206,10 @@ ChaCha20 は 4×4・32 ビットの状態行列を，加算・XOR・回転 (ARX)
 
 状態行列 (16 ワード = 64 バイト) の中身は次の通りです．
 
-| 行  | 内容                                             |
-| --- | ------------------------------------------------ |
-| 0   | 定数 `expand 32-byte k` (4 ワード)               |
-| 1-2 | 256 ビットの鍵 (8 ワード)                        |
+| 行  | 内容                                               |
+| --- | -------------------------------------------------- |
+| 0   | 定数 `expand 32-byte k` (4 ワード)                 |
+| 1-2 | 256 ビットの鍵 (8 ワード)                          |
 | 3   | 32 ビットのカウンタ + 96 ビットのナンス (4 ワード) |
 
 撹拌の中心が quarter-round です．4 つのワード $a, b, c, d$ に対して，加算 ($\bmod\ 2^{32}$)，XOR，左回転 $\lll$ を次の順で適用します．
@@ -231,10 +231,10 @@ $$
 
 AEAD としての組み立ては，カウンタの値で役割を分けるところが肝です．
 
-| カウンタ | 用途                                                       |
-| -------- | ---------------------------------------------------------- |
+| カウンタ | 用途                                                           |
+| -------- | -------------------------------------------------------------- |
 | 0        | 出力の先頭 32 バイトを Poly1305 の一度きりの鍵 $(r, s)$ にする |
-| 1 以降   | キーストリームとして平文と XOR し，暗号文を作る             |
+| 1 以降   | キーストリームとして平文と XOR し，暗号文を作る                |
 
 Poly1305 は，認証対象を 16 バイトずつのブロック $c_1, \ldots, c_n$ に区切り (各ブロックの末尾に $\mathtt{0x01}$ を付ける)，$2^{130}-5$ を法とする多項式として評価します．
 
@@ -297,8 +297,8 @@ TLS, SSH, Signal プロトコルなど，現代の暗号プロトコルはすべ
 #### 参考文献
 
 - [NIST FIPS 197: Advanced Encryption Standard (AES)](https://csrc.nist.gov/pubs/fips/197/final)
-- [NIST SP 800-38D: Recommendation for Block Cipher Modes of Operation: Galois/Counter Mode (GCM) and GMAC](https://csrc.nist.gov/pubs/sp/800/38d/final)
+- [NIST SP 800-38D: Recommendation for Block Cipher Modes of Operation: Galois/Counter Mode (GCM) and GMAC](https://csrc.nist.gov/pubs/sp/800/38/d/final)
 - [RFC 8439: ChaCha20 and Poly1305 for IETF Protocols](https://datatracker.ietf.org/doc/html/rfc8439)
 - [ChaCha20-Poly1305 の仕組み (tex2e)](https://tex2e.github.io/blog/crypto/chacha20poly1305) — ChaCha20 と Poly1305 の内部構造の解説
-- [NIST SP 800-38A: Recommendation for Block Cipher Modes of Operation](https://csrc.nist.gov/pubs/sp/800/38a/final) — ECB, CBC, CTR 等のモード
+- [NIST SP 800-38A: Recommendation for Block Cipher Modes of Operation](https://csrc.nist.gov/pubs/sp/800/38/a/final) — ECB, CBC, CTR 等のモード
 - Daniel J. Bernstein, "The Salsa20 family of stream ciphers", 2008 — ChaCha20 の設計思想

@@ -230,5 +230,5 @@ TLS では，サーバの証明書とデジタル署名を使って ECDHE の公
 
 - [RFC 7748: Elliptic Curves for Security](https://datatracker.ietf.org/doc/html/rfc7748) — X25519, X448 の仕様
 - [RFC 2631: Diffie-Hellman Key Agreement Method](https://datatracker.ietf.org/doc/html/rfc2631) — DH 鍵共有の RFC
-- [NIST SP 800-56A Rev.3: Recommendation for Pair-Wise Key-Establishment Schemes Using Discrete Logarithm Cryptography](https://csrc.nist.gov/pubs/sp/800/56a/r3/final)
+- [NIST SP 800-56A Rev.3: Recommendation for Pair-Wise Key-Establishment Schemes Using Discrete Logarithm Cryptography](https://csrc.nist.gov/pubs/sp/800/56/a/r3/final)
 - [RFC 8446: The Transport Layer Security (TLS) Protocol Version 1.3](https://datatracker.ietf.org/doc/html/rfc8446) — TLS 1.3 での ECDHE の使用
