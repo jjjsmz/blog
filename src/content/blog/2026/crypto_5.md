@@ -45,7 +45,7 @@ RSA は，1977 年に Ron **R**ivest, Adi **S**hamir, Leonard **A**dleman が発
 2. $n = p \times q$ を計算 (RSA モジュロス)
 3. オイラーのトーシェント関数 $\varphi(n) = (p-1)(q-1)$ を計算
 4. $\varphi(n)$ と互いに素な整数 $e$ を選ぶ (一般的に $e = 65537 = 2^{16} + 1$)
-5. $e \times d \equiv 1 \pmod{\varphi(n)}$ を満たす $d$ を計算 (拡張ユークリッドの互除法)
+5. $e \times d \equiv 1 \pmod{\varphi(n)}$ を満たす $d$ を計算（[第1章](/blog/2026/crypto_1/#拡張ユークリッドの互除法)の拡張ユークリッドの互除法）
 
 - **公開鍵**: $(n, e)$
 - **秘密鍵**: $(n, d)$
@@ -55,7 +55,21 @@ RSA は，1977 年に Ron **R**ivest, Adi **S**hamir, Leonard **A**dleman が発
 - 暗号化: $c = m^e \bmod n$($m$: 平文，$c$: 暗号文)
 - 復号: $m = c^d \bmod n$
 
-フェルマーの小定理 (より正確にはオイラーの定理) により，$(m^e)^d \equiv m \pmod{n}$ が成り立ちます．
+[フェルマーの小定理](/blog/2026/crypto_1/#フェルマーの小定理) (より正確にはオイラーの定理) により，$(m^e)^d \equiv m \pmod{n}$ が成り立ちます．
+
+![RSA の暗号化と復号（公開鍵で暗号化・秘密鍵で復号）](./assets/rsa-enc-dec.png)
+
+<details>
+<summary>具体例（小さな数で試す）</summary>
+
+- 素数 $p = 61,\ q = 53$ → $n = pq = 3233$，$\varphi(n) = (p-1)(q-1) = 3120$
+- $e = 17$（$\varphi(n)$ と互いに素）→ $d = e^{-1} \bmod \varphi(n) = 2753$
+- 平文 $m = 65$ を暗号化: $c = 65^{17} \bmod 3233 = 2790$
+- 復号: $m = 2790^{2753} \bmod 3233 = 65$
+
+$17 \times 2753 = 46801 \equiv 1 \pmod{3120}$ なので，暗号化と復号がちょうど打ち消し合って元に戻ります．実際の RSA はこれを 2048 ビット以上の巨大な素数で行います．
+
+</details>
 
 ### RSA の安全性
 
@@ -71,6 +85,16 @@ $n$ が与えられたとき $p$ と $q$ を求められれば，$\varphi(n)$ �
 | 3072 ビット | ~128 ビット  |        ✅ 推奨         |
 
 (参考: [NIST SP 800-57](https://csrc.nist.gov/pubs/sp/800/57/pt1/r5/final))
+
+### 素数の選び方が甘いと破れる
+
+RSA は「$n$ を素因数分解できない」ことが前提ですが，**素数 $p, q$ の選び方**が悪いと分解できてしまいます．鍵長が足りていても脆弱になる，という点が重要です．
+
+- **乱数が弱い**: 乱数生成器の質が低いと $p, q$ が予測可能になります．Debian OpenSSL の PRNG バグ (2008) では生成されうる鍵が極端に限られ，大量の脆弱な鍵が実際に出回りました．
+- **素数の使い回し**: 別々の鍵がたまたま素数を共有すると，2 つの公開鍵から $\gcd(n_1, n_2)$ を計算するだけで共通の素数が求まり，両方の秘密鍵が割れます．2012 年の大規模調査 ("Ron was wrong, Whit is right") では，公開されていた多数の RSA 鍵がこの方法で破られました．公開鍵を集めて GCD を取るだけでよく，攻撃コストが低いのが怖い点です．
+- **$p$ と $q$ が近すぎる**: 差が小さいと **フェルマー法** で簡単に分解されます．Infineon 製チップの偏った素数生成 (ROCA, 2017) のように，生成方法に癖があると分解が現実的になります．
+
+実務では，鍵は信頼できるライブラリ (OpenSSL, libsodium など) の安全な乱数で生成し，自前実装や弱い RNG，鍵の使い回しを避けます．脆弱性対応の観点では，「鍵長は足りているか」だけでなく「その鍵がどう生成されたか」まで見る必要がある，ということです．
 
 ### OAEP パディング
 
@@ -91,7 +115,7 @@ $n$ が与えられたとき $p$ と $q$ を求められれば，$\varphi(n)$ �
 
 **鍵ペア:**
 - 秘密鍵: 整数 $d$ (ランダムに選択)
-- 公開鍵: 点 $Q = dG$ ($G$ は基点)
+- 公開鍵: 点 $Q = dG$（$G$ は [第2章](/blog/2026/crypto_2) で扱った基点，$dG$ はスカラー倍）
 
 **署名生成** (秘密鍵 $d$ でメッセージ $m$ に署名) の手順です．
 1. ランダムな整数 $k$ を選ぶ
@@ -186,10 +210,23 @@ flowchart LR
 
 TLS 1.3 では SHA-256 以上のハッシュ関数が使用されます．
 
+### 「破られている」とは何か
+
+表の「破られている」は，多くの場合 **衝突耐性が破られた** ことを指します．上の 3 つの性質のどれが破れたかで，意味も実害も変わります．
+
+- **MD5**: 衝突を現実的な計算で作れます．実害の例として，マルウェア **Flame** (2012) が MD5 衝突を悪用して Microsoft のコード署名証明書を偽造し，正規の Windows Update になりすまして感染を広げました．
+- **SHA-1**: 2017 年の SHAttered で衝突が実証され，2020 年の "SHA-1 is a Shambles" では任意の接頭辞を選べる衝突 (chosen-prefix collision) まで現実的なコストになりました．証明書や Git のように「ハッシュが同じなら同じもの」とみなす用途で危険です．
+
+注意したいのは，「破られている＝ハッシュから元の入力を逆算できる」ではないことです．原像耐性 (ハッシュ値から入力を求める) は MD5 や SHA-1 でも簡単には破れていません．破られているのは主に「**同じハッシュ値を持つ別のデータを作れる**」という衝突耐性で，署名・証明書のように「正しいものと偽物を取り違えさせたい」攻撃で致命的になります．
+
+![ハッシュの衝突とは（異なる入力が同じダイジェストになる）](./assets/hash-collision.png)
+
+逆に言えば，パスワードの保存のように原像耐性が要る用途と，署名のように衝突耐性が要る用途では，「破られた」の重みが違います．脆弱性対応では，そのハッシュが **何のために使われているか** まで見て判断する必要があります．
+
 <details>
 <summary>☕ コラム: SHA-1 の衝突 — SHAttered</summary>
 
-2017 年，Google と CWI Amsterdam のチームが SHA-1 の衝突を実際に生成することに成功しました ([SHAttered](https://shattered.io/))．
+2017 年，Google と CWI Amsterdam のチームが SHA-1 の衝突を実際に生成することに成功しました ([SHAttered](https://marc-stevens.nl/research/shattered.io/)，[Google の発表](https://security.googleblog.com/2017/02/announcing-first-sha1-collision.html))．
 
 異なる内容の 2 つの PDF ファイルが同じ SHA-1 ハッシュ値を持つことを実証し，SHA-1 の安全性が実用上も損なわれていることを示しました．
 
@@ -255,4 +292,5 @@ TLS では，OCSP Stapling (サーバが OCSP レスポンスを TLS ハンド�
 - [RFC 8032: Edwards-Curve Digital Signature Algorithm (EdDSA)](https://datatracker.ietf.org/doc/html/rfc8032) — Ed25519, Ed448
 - [RFC 5280: Internet X.509 Public Key Infrastructure Certificate and CRL Profile](https://datatracker.ietf.org/doc/html/rfc5280)
 - [NIST SP 800-57 Part 1 Rev.5](https://csrc.nist.gov/pubs/sp/800/57/pt1/r5/final) — 鍵長の推奨値
-- [SHAttered: SHA-1 collision](https://shattered.io/) — SHA-1 衝突の実証
+- [Announcing the first SHA1 collision (Google Security Blog)](https://security.googleblog.com/2017/02/announcing-first-sha1-collision.html) — SHAttered の公式発表
+- [SHAttered (Marc Stevens)](https://marc-stevens.nl/research/shattered.io/) — SHA-1 衝突の実証（著者による解説ページ）

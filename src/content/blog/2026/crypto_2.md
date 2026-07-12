@@ -97,6 +97,8 @@ $\mathcal{O}$ は群の **単位元** の役割を果たします．
 
 **$P$ と $-P$ の場合** ($P$ と $x$ 軸に関して対称な点) は，直線は垂直になり第 3 の交点が存在しないため，$P + (-P) = \mathcal{O}$ (無限遠点) と定義します．
 
+![楕円曲線上の点の加法（弦）と 2 倍算（接線）](./assets/ec-point-add.png)
+
 点の加法は [Andrea Corbellini のインタラクティブな図解](https://andrea.corbellini.name/ecc/interactive/reals-add.html) で動かすと直感的につかめます．
 
 ### 代数的な公式

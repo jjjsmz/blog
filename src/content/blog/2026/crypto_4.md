@@ -1,6 +1,7 @@
 ---
 title: 暗号学入門 4. 共通鍵暗号編
 pubDate: 2026-07-11
+updatedDate: 2026-07-12
 description: IT エンジニアのための暗号学入門．その4 AES を中心とした共通鍵暗号と AEAD．
 tags: ['crypto']
 ---
@@ -60,10 +61,12 @@ NIST は後継アルゴリズムを公募し，世界中から 15 の候補が�
 AES は **SPN 構造** (Substitution-Permutation Network) に基づいています．
 入力の 128 ビットを 4×4 のバイト行列 (ステート) として扱い，各ラウンドで以下の 4 つの変換を適用します．
 
+![AES の 1 ラウンドの 4 変換（SubBytes → ShiftRows → MixColumns → AddRoundKey）](./assets/aes-round.png)
+
 **1. SubBytes (バイト置換)**
 
 各バイトを **S-Box** (置換テーブル) で非線形に変換します．
-S-Box は $\mathrm{GF}(2^8)$ 上の乗法逆元とアフィン変換の組み合わせで構成されており，数学的に設計されています．
+S-Box は $\mathrm{GF}(2^8)$（[第1章](/blog/2026/crypto_1/#有限体-gfp)で扱った有限体の拡大体）上の乗法逆元とアフィン変換の組み合わせで構成されており，数学的に設計されています．
 
 この非線形変換が，AES の安全性の中核です．線形な暗号は簡単に解読できてしまうため，非線形性が不可欠です．
 
@@ -103,11 +106,12 @@ AES は 128 ビットのブロックしか暗号化できません．実際の�
 
 ### ECB モード (使ってはいけない)
 
-**Electronic Codebook** モード．各ブロックを独立に暗号化します．
+**Electronic Codebook** モード．各ブロックを独立に暗号化します．**脆弱なため絶対に使わないようにしましょう．**
 
 - 同じ平文ブロック → 同じ暗号文ブロック
 - パターンが漏洩する (有名な例: ECB ペンギン)
-- **絶対に使ってはいけません**
+
+![ECB モードの回路図](./assets/mode-ecb.png)
 
 ### CBC モード
 
@@ -118,6 +122,10 @@ AES は 128 ビットのブロックしか暗号化できません．実際の�
 - パディングが必要 (平文長がブロック長の倍数でない場合)
 - **パディングオラクル攻撃** の脆弱性がある → 現在は非推奨
 
+![CBC モードの回路図](./assets/mode-cbc.png)
+
+式で書くと $C_i = E_K(P_i \oplus C_{i-1})$ です．最初のブロックには $C_{i-1}$ にあたるものがないため，IV を使います．
+
 ### CTR モード
 
 **Counter** モード．カウンタ値を暗号化してキーストリームを生成し，平文と XOR します．
@@ -126,6 +134,10 @@ AES は 128 ビットのブロックしか暗号化できません．実際の�
 - パディング不要
 - 並列処理が可能
 - ただし，**改ざん検知機能がない**
+
+![CTR モードの回路図](./assets/mode-ctr.png)
+
+式で書くと $C_i = E_K(\mathrm{Nonce} \| i) \oplus P_i$ です．鍵ストリームは平文と無関係に作れるため，事前計算やブロック単位の並列計算ができます．
 
 ### GCM モード (推奨)
 
@@ -159,7 +171,7 @@ AES は 128 ビットのブロックしか暗号化できません．実際の�
 
 **仕組み:**
 1. CTR モードで平文を暗号化 → 暗号文 C
-2. $\mathrm{GF}(2^{128})$ 上のガロア体乗算 (GHASH) で暗号文と AAD から認証タグ T を計算
+2. $\mathrm{GF}(2^{128})$（[第1章](/blog/2026/crypto_1/#有限体-gfp)の有限体を拡張した体）上のガロア体乗算 (GHASH) で暗号文と AAD から認証タグ T を計算
 
 **AAD (関連データ)** は暗号化されないが，認証の対象になるデータです．
 たとえば，TLS では，レコードヘッダ (プロトコルバージョンやレコード長) が AAD として認証されます．ヘッダは平文で送る必要がありますが，改ざんは検知したいというユースケースです．
@@ -169,20 +181,9 @@ AES は 128 ビットのブロックしか暗号化できません．実際の�
 ブラウザの Web Crypto API が直接提供している AES も基本的には AES-GCM です．
 AES-CBC や AES-CTR を選ぶことはできますが，その場合は改ざん検知を別途設計する必要があります．
 
-AES-GCM の入出力を図にすると，次のようになります．
+AES-GCM の構成を図にすると，次のようになります．
 
-```mermaid
-flowchart LR
-  P["平文 P"] --> ENC["CTR モードで暗号化"]
-  K["鍵 K"] --> ENC
-  IV["IV / ナンス"] --> ENC
-  ENC --> C["暗号文 C"]
-  C --> TAG["GCM の認証処理"]
-  AAD["AAD"] --> TAG
-  K --> TAG
-  IV --> TAG
-  TAG --> T["認証タグ T"]
-```
+![AES-GCM の構成（CTR モードで暗号化し，GHASH で認証タグを作る）](./assets/aes-gcm.png)
 
 ### AES-GCM の注意点
 
@@ -198,6 +199,52 @@ Google の Adam Langley らが TLS 向けに提案し，[RFC 8439](https://datat
 
 - **ChaCha20**: Daniel J. Bernstein が設計したストリーム暗号
 - **Poly1305**: 同じく Bernstein が設計した MAC (Message Authentication Code)
+
+### 内部構造
+
+ChaCha20 は 4×4・32 ビットの状態行列を，加算・XOR・回転 (ARX) だけで撹拌してキーストリームを作ります．乗算やテーブル参照を使わないため，定数時間で実装しやすくサイドチャネル攻撃に強いのが特長です．
+
+状態行列 (16 ワード = 64 バイト) の中身は次の通りです．
+
+| 行  | 内容                                             |
+| --- | ------------------------------------------------ |
+| 0   | 定数 `expand 32-byte k` (4 ワード)               |
+| 1-2 | 256 ビットの鍵 (8 ワード)                        |
+| 3   | 32 ビットのカウンタ + 96 ビットのナンス (4 ワード) |
+
+撹拌の中心が quarter-round です．4 つのワード $a, b, c, d$ に対して，加算 ($\bmod\ 2^{32}$)，XOR，左回転 $\lll$ を次の順で適用します．
+
+<!-- textlint-disable ja-technical-writing/sentence-length -->
+
+$$
+\begin{aligned}
+a &\leftarrow a + b, & d &\leftarrow (d \oplus a) \lll 16 \\
+c &\leftarrow c + d, & b &\leftarrow (b \oplus c) \lll 12 \\
+a &\leftarrow a + b, & d &\leftarrow (d \oplus a) \lll 8 \\
+c &\leftarrow c + d, & b &\leftarrow (b \oplus c) \lll 7
+\end{aligned}
+$$
+
+<!-- textlint-enable ja-technical-writing/sentence-length -->
+
+これを列方向と対角方向に交互に適用し，計 20 ラウンド回します．最後に元の状態を足し戻して，64 バイトのキーストリームブロックを得ます．
+
+AEAD としての組み立ては，カウンタの値で役割を分けるところが肝です．
+
+| カウンタ | 用途                                                       |
+| -------- | ---------------------------------------------------------- |
+| 0        | 出力の先頭 32 バイトを Poly1305 の一度きりの鍵 $(r, s)$ にする |
+| 1 以降   | キーストリームとして平文と XOR し，暗号文を作る             |
+
+Poly1305 は，認証対象を 16 バイトずつのブロック $c_1, \ldots, c_n$ に区切り (各ブロックの末尾に $\mathtt{0x01}$ を付ける)，$2^{130}-5$ を法とする多項式として評価します．
+
+$$
+\mathrm{Tag} = \left( \sum_{i=1}^{n} c_i \, r^{\,n-i+1} \bmod (2^{130}-5) \right) + s \bmod 2^{128}
+$$
+
+認証対象は AAD・暗号文・それぞれの長さを連結したものです．鍵 $(r, s)$ がメッセージごとに使い捨てであることが安全性の前提なので，ナンスを再利用するとこの前提が崩れます．
+
+内部の詳しい動きは [tex2e 氏の解説](https://tex2e.github.io/blog/crypto/chacha20poly1305) が分かりやすいです．
 
 ### AES-GCM との比較
 
@@ -252,5 +299,6 @@ TLS, SSH, Signal プロトコルなど，現代の暗号プロトコルはすべ
 - [NIST FIPS 197: Advanced Encryption Standard (AES)](https://csrc.nist.gov/pubs/fips/197/final)
 - [NIST SP 800-38D: Recommendation for Block Cipher Modes of Operation: Galois/Counter Mode (GCM) and GMAC](https://csrc.nist.gov/pubs/sp/800/38d/final)
 - [RFC 8439: ChaCha20 and Poly1305 for IETF Protocols](https://datatracker.ietf.org/doc/html/rfc8439)
+- [ChaCha20-Poly1305 の仕組み (tex2e)](https://tex2e.github.io/blog/crypto/chacha20poly1305) — ChaCha20 と Poly1305 の内部構造の解説
 - [NIST SP 800-38A: Recommendation for Block Cipher Modes of Operation](https://csrc.nist.gov/pubs/sp/800/38a/final) — ECB, CBC, CTR 等のモード
 - Daniel J. Bernstein, "The Salsa20 family of stream ciphers", 2008 — ChaCha20 の設計思想
