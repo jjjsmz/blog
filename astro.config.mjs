@@ -1,3 +1,4 @@
+import { unified } from '@astrojs/markdown-remark';
 import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 import { defineConfig } from 'astro/config';
@@ -37,25 +38,27 @@ export default defineConfig({
       type: 'shiki',
       excludeLangs: ['mermaid'],
     },
-    remarkPlugins: [
-      addCodeUtil,
-      remarkGithubPermalinkEmbed,
-      linkNewTab,
-      remarkMermaidDetector,
-      remarkMath,
-      remarkBreaks,
-    ],
-    rehypePlugins: [
-      rehypeGithubPermalinkEmbed,
-      rehypeKatex,
-      rehypeSlug,
-      [
-        rehypeAutolinkHeadings,
-        {
-          behavior: 'wrap',
-        },
+    processor: unified({
+      remarkPlugins: [
+        addCodeUtil,
+        remarkGithubPermalinkEmbed,
+        linkNewTab,
+        remarkMermaidDetector,
+        remarkMath,
+        remarkBreaks,
       ],
-    ],
+      rehypePlugins: [
+        rehypeGithubPermalinkEmbed,
+        rehypeKatex,
+        rehypeSlug,
+        [
+          rehypeAutolinkHeadings,
+          {
+            behavior: 'wrap',
+          },
+        ],
+      ],
+    }),
   },
   vite: {
     optimizeDeps: {
