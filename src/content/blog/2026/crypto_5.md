@@ -160,8 +160,12 @@ SSH では `ssh-ed25519` として広く使われており，**新規の鍵生�
 1. **署名者**: メッセージのハッシュを計算し，秘密鍵で署名
 2. **検証者**: メッセージのハッシュを計算し，署名者の公開鍵で署名を検証
 
+<!-- textlint-disable ja-technical-writing/ja-no-mixed-period -->
+
 署名: Sign(秘密鍵, Hash(メッセージ)) → 署名値
 検証: Verify(公開鍵, Hash(メッセージ), 署名値) → 有効/無効
+
+<!-- textlint-enable ja-technical-writing/ja-no-mixed-period -->
 
 図にすると，次のような流れです．
 
@@ -269,6 +273,50 @@ graph TD
 
 ブラウザや OS は，信頼するルート CA の証明書を **トラストストア** として保持しています．
 サーバ証明書の検証は，このチェーンを辿ってルート CA に到達できるかを確認します．
+
+### トラストストアはひとつではない
+
+ここまで「OS やブラウザがルート CA を持っている」と書きましたが，実際にどのトラストストアを見るかは言語・ランタイムごとに違います．
+
+大きく 3 通りに分かれます．
+
+| 参照先         | 例                                                              |
+| -------------- | --------------------------------------------------------------- |
+| OS のストア    | Go, .NET, OpenSSL を使うもの (curl など)                        |
+| ランタイム同梱 | Java (`cacerts`), Node.js (Mozilla CA のスナップショットを同梱) |
+| ライブラリ同梱 | Python の `requests` (`certifi` パッケージ)                     |
+
+Node.js はリリース時点の Mozilla CA ストアのスナップショットを同梱しており，既定では OS のストアを見ません ([Node.js ドキュメント](https://nodejs.org/api/cli.html#--use-bundled-ca---use-openssl-ca))．
+`requests` は「certifi パッケージの証明書を使う」と明記されています ([requests ドキュメント](https://requests.readthedocs.io/en/latest/user/advanced/#ca-certificates))．
+一方 Go は OS のストアを読み，`SSL_CERT_FILE` / `SSL_CERT_DIR` で上書きできます ([crypto/x509](https://pkg.go.dev/crypto/x509#SystemCertPool))．
+
+ブラウザも一枚岩ではありません．Firefox は OS ではなく独自の NSS ストアを見ますし，Chrome も Chrome Root Store という独自ストアへ移行しています．
+
+### 「OS に入れたのに繋がらない」
+
+典型的なハマり方が，企業プロキシによる SSL インスペクションです．プロキシのルート CA を **OS のストアに入れた** のに，こうなります．
+
+- `curl` は通る (OS を見ている)
+- Go のアプリも通る (OS を見ている)
+- `node` は通らない (同梱の CA しか見ていない)
+- `requests` を使う Python も通らない (certifi を見ている)
+- Java も通らない (`cacerts` を見ている)
+
+同じ Python でも，標準ライブラリの `ssl` は OpenSSL の既定パス (つまり OS) を見るため，`urllib` は通るのに `requests` だけ落ちる，ということも起こります．「ブラウザでは開けるのにアプリからは繋がらない」も同じ構図です．
+
+対処は，**そのランタイムが見ているストアに入れる** ことです．
+
+| 対象                 | 追加・切り替えの方法                                                              |
+| -------------------- | --------------------------------------------------------------------------------- |
+| OS (Debian / Ubuntu) | `/usr/local/share/ca-certificates/` に置いて `update-ca-certificates`             |
+| OpenSSL / Go         | `SSL_CERT_FILE`, `SSL_CERT_DIR`                                                   |
+| Node.js              | `NODE_EXTRA_CA_CERTS=/path/ca.pem`．`--use-openssl-ca` / `--use-system-ca` でも可 |
+| Python (requests)    | `REQUESTS_CA_BUNDLE` (なければ `CURL_CA_BUNDLE`)                                  |
+| Java                 | `keytool` で `cacerts` に import                                                  |
+
+コンテナでよく見る `x509: certificate signed by unknown authority` も，多くは **ca-certificates パッケージが入っていない** だけです (scratch や最小イメージ)．
+
+証明書エラーを見たら，まず「このプロセスは誰を信頼していて，その信頼はどこに書かれているのか」を特定します．それだけで切り分けの大半は済みます．
 
 ### 証明書の失効
 
