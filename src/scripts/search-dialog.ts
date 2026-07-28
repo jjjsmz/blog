@@ -123,10 +123,12 @@ function renderResults(items: Array<{ id: string }>, query: string) {
       const titleHtml = highlight(used.title, terms);
       const excerptHtml = highlight(excerptRaw, terms);
       return `
-        <a class="result-item" href="${used.url}" rel="noopener noreferrer" data-index="${idx}">
-          <div class="result-title">${titleHtml}</div>
-          <div class="result-desc">${excerptHtml}</div>
-        </a>
+        <li>
+          <a class="result-item" href="${used.url}" rel="noopener noreferrer" data-index="${idx}">
+            <div class="result-title">${titleHtml}</div>
+            <div class="result-desc">${excerptHtml}</div>
+          </a>
+        </li>
       `;
     })
     .join('');

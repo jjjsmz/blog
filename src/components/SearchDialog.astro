@@ -5,7 +5,7 @@
     <input id="searchInput" type="search" placeholder="検索ワード" autofocus />
     <button id="searchClose" class="close" type="button" aria-label="close">×</button>
   </form>
-  <div id="searchResults" class="results" role="list" aria-live="polite" aria-label="検索結果"></div>
+  <ul id="searchResults" class="results" aria-live="polite" aria-label="検索結果"></ul>
 </dialog>
 
 <style>
@@ -49,7 +49,9 @@
       background: var(--bg-secondary);
       border: 1px solid var(--color-gray-700);
       border-radius: var(--radius-md);
+      margin: 0;
       padding: 0.5rem;
+      list-style: none;
       display: none; /* 空時は非表示にする（初期状態） */
       max-height: 60vh;
       overflow-y: auto;
