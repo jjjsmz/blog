@@ -2,6 +2,3 @@
 name = "blog"
 pages_build_output_dir = "dist"
 compatibility_date = "2024-02-03"
-
-[env.production.vars]
-NODE_VERSION = "v22.13.1"
