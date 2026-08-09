@@ -18,8 +18,7 @@ tags: ['crypto']
 3. [DH 鍵共有，ECDH 鍵共有](/blog/2026/crypto_3)
 4. [共通鍵暗号 (AES など)](/blog/2026/crypto_4)
 5. [公開鍵暗号 (RSA, ECC など)](/blog/2026/crypto_5)
-6. TLS
-7. (余談) SSH
+6. [TLS](/blog/2026/crypto_6)
 
 (失踪したらごめんなさい．)
 </details>
