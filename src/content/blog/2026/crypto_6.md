@@ -17,7 +17,6 @@ tags: ['crypto', 'network']
 4. [共通鍵暗号 (AES など)](/blog/2026/crypto_4)
 5. [公開鍵暗号 (RSA, ECC など)](/blog/2026/crypto_5)
 6. **TLS** (本稿)
-7. (余談) SSH
 
 </details>
 
@@ -57,11 +56,15 @@ RFC 9846 は同時に，TLS 1.2 の RFC 5246，セッションチケットの RF
 <summary>☕ コラム: SSL と TLS — 名前の由来</summary>
 
 SSL (Secure Sockets Layer) は，1990 年代に Netscape が開発したプロトコルです．
-SSL 3.0 をベースに IETF が標準化したものが TLS 1.0 であり，技術的には SSL 3.0 の後継ですが，政治的な理由 (Netscape の独自プロトコルを IETF 標準にする際のブランディング) で名前が変わりました．
+SSL 3.0 をベースに IETF が標準化したものが TLS 1.0 で，中身は SSL 3.1 と呼ぶべきものでした．
+
+これは RFC 2246 の編者である Tim Dierks 本人が[書いています](https://tim.dierks.org/2014/05/security-standards-and-name-changes-in.html)．Netscape と Microsoft の代表を集めて IETF での標準化に合意させる交渉の中で，こうなったそうです．
+
+> As a part of the horsetrading, we had to make some changes to SSL 3.0 (so it wouldn't look the IETF was just rubberstamping Netscape's protocol), and we had to rename the protocol (for the same reason). And thus was born TLS 1.0 (which was really SSL 3.1).
+
+「IETF が Netscape のプロトコルをただ追認しただけに見えないように」名前を変えた，というわけです．本人も同じ記事で "the whole thing looks silly" と振り返っています．
 
 現在「SSL 証明書」と呼ばれるものは，実際には TLS で使用される X.509 証明書であり，SSL 自体はもう使われていません．「SSL/TLS」と併記されることも多いですが，厳密には「TLS」が正しい呼称です．
-
-ちなみに TLS 1.3 の策定中，バージョン番号を「SSL 4.0」にしてはどうかという半ば冗談の提案もあったそうです．
 
 </details>
 
@@ -105,7 +108,7 @@ sequenceDiagram
 - **signature_algorithms 拡張**: サポートする署名アルゴリズム
 - **server_name 拡張** (SNI): 接続先のホスト名 (ECH を使わない限り平文で見える)
 
-TLS 1.3 の重要な改善点として，key_share をClientHello に含めることで，サーバが鍵交換アルゴリズムを選択した時点で即座に共有秘密を計算できるようになっています．
+TLS 1.3 の重要な改善点として，key_share を ClientHello に含めることで，サーバが鍵交換アルゴリズムを選択した時点で即座に共有秘密を計算できるようになっています．
 
 2. **ServerHello**
 
@@ -123,7 +126,7 @@ TLS 1.3 の重要な改善点として，key_share をClientHello に含める�
 
 4. **Certificate**
 
-サーバのX.509 証明書チェーンを送信します ([第5章](/blog/2026/crypto_5#証明書チェーン))．
+サーバの X.509 証明書チェーンを送信します ([第5章](/blog/2026/crypto_5#証明書チェーン))．
 
 5. **CertificateVerify**
 
@@ -138,6 +141,12 @@ TLS 1.3 の重要な改善点として，key_share をClientHello に含める�
 7. **Finished**
 
 ハンドシェイク全体のトランスクリプトハッシュに対する MAC を送信し，双方がハンドシェイクの完全性を検証します．
+
+### Negotiation が失敗したら？
+
+クライアントが並べた暗号スイートをサーバがひとつもサポートしていなかった場合，どうなるでしょうか？そのような場合は，ハンドシェイクが失敗します．
+RFC 9846 [Section 4.2.1](https://datatracker.ietf.org/doc/html/rfc9846#section-4.2.1) は，パラメータが折り合わなかったサーバは `handshake_failure` または `insufficient_security` の fatal alert を送ってハンドシェイクを中断しなければならない (MUST)，と規定しています．`supported_groups` に重なりがない場合も同じです．
+弱いアルゴリズムに落として繋ぎ直すような救済はありません．TLS 1.2 以前のダウングレードの歴史を思えば，これは正しい設計です．
 
 ## TLS 1.3 の暗号スイート
 
@@ -199,10 +208,34 @@ TLS 1.3 では，過去に脆弱性が指摘された多くの機能が廃止さ
 
 TLS 1.3 では，過去に接続したことのあるサーバへの再接続時に **0-RTT** でアプリケーションデータを送信できます．
 
-1. 初回接続のハンドシェイク後，サーバが **PSK (Pre-Shared Key)** をクライアントに提供
-2. 再接続時，クライアントは PSK を使って ClientHello と同時にアプリケーションデータを送信
+1. 初回接続のハンドシェイク後，サーバが **NewSessionTicket** メッセージでチケットをクライアントに渡す
+2. 再接続時，クライアントはそのチケットを `pre_shared_key` 拡張に載せ，ClientHello と同時にアプリケーションデータを送信
 
-ただし，0-RTT データには **リプレイ攻撃** の耐性がないという制限があります．
+#### PSK はどこに保持されるか
+
+まず，**PSK (Pre-Shared Key) そのものはネットワークを流れません**．
+サーバが NewSessionTicket で渡すのは `ticket` という不透明な値で，実際の PSK は両者が手元の `resumption_secret` から導出します ([RFC 9846§4.7.1](https://datatracker.ietf.org/doc/html/rfc9846#section-4.7.1))．
+
+```
+HKDF-Expand-Label(resumption_secret, "resumption", ticket_nonce, Hash.length)
+```
+
+`ticket` は PSK の identity として使われるだけです．中身はサーバの自由で，RFC 9846 は「データベースのルックアップキーでもよいし，サーバ自身が暗号化・認証した自己完結の値でもよい」としています．後者ならサーバ側に状態を持たずに済むため，広く使われています．
+
+クライアント側の保持場所は仕様が規定しておらず，実装依存です．ブラウザは一般にプロセス内のセッションキャッシュに置きます．OpenSSL では `SSL_SESSION` オブジェクトで，明示すればファイルに書き出せます．
+
+```bash
+# セッションを保存して，次回それを使って再開する
+openssl s_client -connect blog.jsmz.dev:443 -sess_out sess.pem
+openssl s_client -connect blog.jsmz.dev:443 -sess_in sess.pem
+```
+
+保持できる期間には上限があります．`ticket_lifetime` は最大 604800 秒 (7 日) で，クライアントはこの値に関わらず発行から 7 日を超えてチケットを使ってはいけません．
+チケットは事実上その接続を再開できる鍵材料なので，ディスクに残す場合は秘密鍵と同じ扱いが要ります．
+
+#### リプレイ攻撃
+
+0-RTT データには **リプレイ攻撃** の耐性がないという制限があります．
 攻撃者が 0-RTT データをキャプチャして再送信すると，サーバはそれを新しいリクエストとして処理する可能性があります．
 サーバは 0-RTT を受け付けず，通常の 1-RTT にフォールバックすることもあります．
 
@@ -237,6 +270,17 @@ TLS ハンドシェイクにおけるサーバ証明書の検証手順を整理�
 
 チェーンの最上位の CA が，クライアントのトラストストアに含まれているか確認します．
 
+ここで実務上の落とし穴になるのが，「クライアントのトラストストア」がどこを指すのかという点です．
+Linux ではディストリビューションが `ca-certificates` パッケージでルート証明書を配り，OpenSSL を使うプログラムはそれを参照します．Fedora なら実体は `/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem` で，`/etc/ssl/certs/ca-certificates.crt` はそこへのシンボリックリンクです．
+
+ところが，言語やライブラリによっては独自のストアを持ちます．
+
+- **Python**: 標準ライブラリの `ssl` は OpenSSL 経由でシステムのストアを見ますが，`requests` は [certifi パッケージ](https://requests.readthedocs.io/en/latest/user/advanced/#ca-certificates)のバンドルを使います．「`curl` は通るのに Python から叩くと証明書エラー」の典型的な原因です．ただし Fedora の `python3-certifi` のように `certifi.where()` をシステムのバンドルに向けるパッチがディストリ側で当たっていることもあり，挙動は環境で変わります
+- **Node.js**: 公式ビルドは Mozilla ルートストアのスナップショットを内蔵しています．システムのストアを使うには `--use-openssl-ca`，証明書を追加したいだけなら `NODE_EXTRA_CA_CERTS` を指定します
+- **Java**: JDK 同梱の `cacerts` キーストアを使います
+
+コンテナも同じ話の延長です．`FROM scratch` や Alpine のイメージにはルート証明書が入っていないため，HTTPS が軒並み失敗します．Alpine なら `apk add --no-cache ca-certificates` が要ります．
+
 ### 4. 有効期間の確認
 
 証明書の `notBefore` と `notAfter` が現在時刻の範囲内か確認します．
@@ -248,8 +292,11 @@ TLS ハンドシェイクにおけるサーバ証明書の検証手順を整理�
 
 ### 6. 失効チェック
 
-OCSP または CRL で証明書が失効していないか確認します ([第5章](/blog/2026/crypto_5))．
+CRL または OCSP で証明書が失効していないか確認します ([第5章](/blog/2026/crypto_5))．
 実際のブラウザ実装では，失効確認は soft-fail を含む複雑な挙動になることもありますが，ここでは基本形として押さえます．
+
+ただし OCSP は退潮です．Let's Encrypt は 2024 年 12 月に廃止を[予告](https://letsencrypt.org/2024/12/05/ending-ocsp)し，2025 年 5 月 7 日に証明書から OCSP URL を削除，2025 年 8 月 6 日にレスポンダを停止しました．
+理由はプライバシーです．OCSP のリアルタイム問い合わせは「どのクライアントが，いつ，どのサイトを見たか」を CA に渡してしまいます．同社は CRL に一本化しました．
 
 ### 7. CertificateVerify の検証
 
@@ -284,6 +331,17 @@ flowchart TD
 | [第5章](/blog/2026/crypto_5) | SHA-256                    | ハンドシェイクのトランスクリプトハッシュ |
 | [第5章](/blog/2026/crypto_5) | X.509 証明書，PKI          | サーバ認証，証明書チェーン検証           |
 
+## おわりに
+
+[第1章](/blog/2026/crypto_1)の群と体から始めて，6 章かけてここまで来ました．
+
+有限体の上に楕円曲線を載せ，離散対数問題の難しさを担保にして鍵を共有する．共有した鍵で AEAD 暗号化する．署名と証明書で，相手が名乗ったとおりの相手か確かめる．TLS 1.3 はこれらを 1 往復のハンドシェイクに組み上げたものでした．
+
+得られるのは，TCP の上に通った 1 本の管です．盗聴されず，改ざんされず，相手が誰かも分かっている．
+
+この層での暗号の出番はここまでです．管の中を流れるのは，あとはただのアプリケーションデータでしかありません．L7 でやっているのは，ネットワーク的な観点では HTTP のリクエストを書いて JSON やハイパーテキストを返すことだけです．もちろん，アプリケーション観点ではビジネスロジックが重要ですが，そこは暗号の出番ではありません．
+普段書いているコードは，この 6 章分の上に乗っています．
+
 ---
 #### 参考文献
 
@@ -293,4 +351,3 @@ flowchart TD
 - [RFC 8996: Deprecating TLS 1.0 and TLS 1.1](https://datatracker.ietf.org/doc/html/rfc8996) — TLS 1.0/1.1 の廃止
 - [RFC 9846 Section 9: Compliance Requirements](https://datatracker.ietf.org/doc/html/rfc9846#section-9) — 必須の暗号スイートと拡張
 - [RFC 9001: Using TLS to Secure QUIC](https://datatracker.ietf.org/doc/html/rfc9001) — QUIC における TLS 1.3 の利用
-- Eric Rescorla, "The Illustrated TLS 1.3 Connection" — TLS 1.3 ハンドシェイクの可視化
