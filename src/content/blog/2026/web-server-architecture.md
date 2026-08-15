@@ -1,6 +1,6 @@
 ---
 title: Web サーバの仕組み
-pubDate: 2026-09-10
+pubDate: 2026-09-10 # TODO: 公開前に日付変更
 description: Web サーバの仕組みを低レイヤから理解する．NIC，カーネル，ネットワークスタック，スケジューラ，メモリアロケータ，アプリケーションプロセスの連携について．
 tags: ['web', 'network', 'os', 'architecture', 'performance']
 ---
