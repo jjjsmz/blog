@@ -73494,7 +73494,7 @@
     "wg": "httpbis",
     "technology": "http",
     "subtopic": "manual",
-    "subtopicLabel": "HTTP の中核仕様",
+    "subtopicLabel": "HTTP のコア仕様",
     "manual": true
   },
   {
@@ -73506,7 +73506,7 @@
     "wg": "httpbis",
     "technology": "http",
     "subtopic": "manual",
-    "subtopicLabel": "HTTP の中核仕様",
+    "subtopicLabel": "HTTP のコア仕様",
     "manual": true
   },
   {
@@ -73518,7 +73518,7 @@
     "wg": "httpbis",
     "technology": "http",
     "subtopic": "manual",
-    "subtopicLabel": "HTTP の中核仕様",
+    "subtopicLabel": "HTTP のコア仕様",
     "manual": true
   },
   {
@@ -73530,7 +73530,7 @@
     "wg": "httpbis",
     "technology": "http",
     "subtopic": "manual",
-    "subtopicLabel": "HTTP の中核仕様",
+    "subtopicLabel": "HTTP のコア仕様",
     "manual": true
   },
   {
@@ -73542,7 +73542,7 @@
     "wg": "quic",
     "technology": "http",
     "subtopic": "manual",
-    "subtopicLabel": "HTTP の中核仕様",
+    "subtopicLabel": "HTTP のコア仕様",
     "manual": true
   },
   {
