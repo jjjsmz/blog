@@ -1,0 +1,250 @@
+---
+import General from "../../../layouts/General.astro";
+import { entries, treeData } from "../../../utils/rfc";
+
+const tree = treeData();
+
+const title = "RFC マップ";
+const description =
+  "現行の RFC をレイヤと分野に整理したマップ．左から順にたどると RFC の一覧に行き着く．";
+---
+
+<General title={title} description={description}>
+  <article class="rfc-map">
+    <header class="head">
+      <h1>{title}</h1>
+      <span class="total">{entries.length.toLocaleString()} 件</span>
+    </header>
+
+    <p>
+      廃止済みと HISTORIC を除いた現行の
+      RFCを，ネットワークのレイヤと分野に整理しています． RFC 番号は <a
+        href="https://www.rfc-editor.org/">RFC Editor</a
+      > の本文へのリンクです．
+    </p>
+
+    <div class="tree" id="rfc-tree">
+      <noscript>
+        <p class="fallback">この地図の操作には JavaScript が必要です．</p>
+      </noscript>
+    </div>
+  </article>
+</General>
+
+<script
+  id="rfc-tree-data"
+  type="application/json"
+  is:inline
+  set:html={JSON.stringify(tree)}
+/>
+<script is:inline type="module" src="/js/rfc-map.js"></script>
+
+<style>
+  .rfc-map {
+    /* Internet Standard の目印 */
+    --std: #e5c07b;
+
+    .head {
+      display: flex;
+      align-items: baseline;
+      gap: 0.8rem;
+      padding-bottom: 0.5rem;
+
+      h1 {
+        margin: 0;
+        font-size: 1.1rem;
+      }
+
+      .total {
+        font-family: var(--font-mono);
+        font-size: var(--font-size-xs);
+        color: var(--text-muted);
+        font-variant-numeric: tabular-nums;
+      }
+    }
+
+    .tree {
+      display: flex;
+      /* keep the whole box inside the viewport */
+      height: clamp(22rem, calc(100dvh - 14rem), 48rem);
+      overflow-x: auto;
+      overflow-y: hidden;
+      border: 1px solid var(--color-gray-700);
+      border-radius: var(--radius-sm);
+      padding: 0%;
+      min-height: 75vh;
+    }
+
+    .fallback {
+      color: var(--text-muted);
+      font-size: var(--font-size-xs);
+    }
+
+    /* The columns are built by /js/rfc-map.js after the page loads, so they
+       never carry Astro's scope attribute. :global lets the rules reach them
+       while the wrapper above stays scoped to this page. */
+    :global(.column) {
+      /* four columns fill the box exactly when there is room for them */
+      flex: 1 1 25%;
+      min-width: 13rem;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      border-right: 1px solid var(--color-gray-700);
+
+      :global(.column-head) {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.5rem;
+        padding: 0.4rem 0.7rem;
+        font-size: var(--font-size-xs);
+        color: var(--text-muted);
+        border-bottom: 1px solid var(--color-gray-700);
+
+        :global(.n) {
+          font-family: var(--font-mono);
+          font-variant-numeric: tabular-nums;
+        }
+      }
+
+      .items {
+        flex: 1 1 auto;
+        overflow-y: auto;
+      }
+    }
+
+    .node {
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+      width: 100%;
+      text-align: left;
+      padding: 0.35rem 0.7rem;
+      background: none;
+      border: none;
+      border-left: 2px solid transparent;
+      font: inherit;
+      font-size: var(--font-size-sm);
+      color: inherit;
+      cursor: pointer;
+
+      .label {
+        flex: 1 1 auto;
+        min-width: 0;
+        overflow-wrap: anywhere;
+      }
+
+      .n {
+        flex: 0 0 auto;
+        font-family: var(--font-mono);
+        font-size: var(--font-size-xs);
+        color: var(--text-muted);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .arrow {
+        flex: 0 0 auto;
+        color: var(--color-gray-500);
+      }
+
+      &:hover {
+        background: var(--bg-secondary);
+      }
+
+      &[aria-expanded="true"] {
+        background: var(--bg-secondary);
+        border-left-color: var(--accent);
+        color: var(--text-bright);
+
+        .arrow {
+          color: var(--accent);
+        }
+      }
+    }
+
+    .rfc {
+      display: flex;
+      gap: 0.5rem;
+      align-items: baseline;
+      padding: 0.3rem 0.7rem;
+
+      &:hover {
+        background: var(--bg-secondary);
+      }
+
+      a {
+        flex: 0 0 5.2rem;
+        font-family: var(--font-mono);
+        font-size: var(--font-size-xs);
+        text-decoration: none;
+        font-variant-numeric: tabular-nums;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+
+      .title {
+        font-size: var(--font-size-xs);
+        line-height: 1.45;
+      }
+
+      /* Internet Standard: the ones that finished the standards track */
+      &:global(.std) {
+        a {
+          color: var(--std);
+        }
+      }
+    }
+
+    .related {
+      flex: 0 0 auto;
+      padding: 0.45rem 0.7rem;
+      border-top: 1px solid var(--color-gray-700);
+
+      h3 {
+        margin: 0 0 0.25rem;
+        font-size: var(--font-size-xs);
+        font-weight: 400;
+        color: var(--text-muted);
+      }
+
+      ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+      }
+
+      button {
+        background: none;
+        border: none;
+        padding: 0;
+        font: inherit;
+        font-size: var(--font-size-xs);
+        color: var(--text-color);
+        cursor: pointer;
+        text-align: left;
+
+        &:hover {
+          color: var(--link-hover);
+          text-decoration: underline;
+        }
+      }
+    }
+
+    .loading {
+      padding: 0.6rem 0.7rem;
+      font-size: var(--font-size-xs);
+      color: var(--text-muted);
+    }
+
+    @media (max-width: 720px) {
+      .tree {
+        height: 70dvh;
+      }
+    }
+  }
+</style>
