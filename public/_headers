@@ -9,3 +9,6 @@
 
 /favicon.ico
     Cache-Control: public, max-age=31536000
+
+/tool/rfc/data/*.json
+    Cache-Control: public, max-age=86400
