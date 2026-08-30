@@ -35,13 +35,15 @@ x86_64 の CPU には特権レベル (リング) があり，OS カーネルが�
 
 なお，システムコールは，カーネル上で 1 つ 1 つ番号が割り当てられており，x86_64 Linux では `syscall` 命令で呼び出されます．ユーザ空間からは libc のラッパ関数を通じて呼び出されることがほとんどです．以下がシステムコールの一覧です．
 
-https://github.com/torvalds/linux/blob/6d35786de28116ecf78797a62b84e6bf3c45aa5a/arch/x86/entry/syscalls/syscall_64.tbl
+https://github.com/torvalds/linux/blob/6d35786de28116ecf78797a62b84e6bf3c45aa5a/arch/x86/entry/syscalls/syscall_64.tbl#L1-L443
 
 ### Linux ではプロセスもスレッドも `task_struct`
 
 Linux ではプロセスもスレッドも `task_struct` という同じ構造体で表されます．`fork(2)` も `pthread_create(3)` も内部的には `clone(2)` で `task_struct` を作っており，違いは「親と何を共有するか (CLONE_VM, CLONE_FILES, CLONE_SIGHAND…)」だけです．
 
-`task_struct` はカーネル内部で最も大きな構造体のひとつで，`include/linux/sched.h` に定義があります．現在の Linux では[定義だけで 800 行を超えます](https://github.com/torvalds/linux/blob/06cf61899d6498b33e4b7c87d99d5bd471ccc375/include/linux/sched.h#L826-L1670)．
+`task_struct` はカーネル内部で最も大きな構造体のひとつで，`include/linux/sched.h` に定義があります．現在の Linux では定義だけで 800 行を超えます．
+
+https://github.com/torvalds/linux/blob/06cf61899d6498b33e4b7c87d99d5bd471ccc375/include/linux/sched.h#L826-L1670
 
 例として，`__state` はタスクの状態 (TASK_RUNNING, TASK_INTERRUPTIBLE, ...) を表します．`stack` はカーネルスタックへのポインタです．
 `mm` はユーザ空間のアドレス空間情報へのポインタで，NULL ならカーネルスレッドです．`files` はファイルディスクリプタテーブルへのポインタ，`signal` はシグナル関連の情報へのポインタです．`cred` は資格情報へのポインタ，`comm` は実行ファイル名 ("nginx", "go" など) です．
@@ -857,13 +859,13 @@ epoll を持つことで「1 スレッドで多数の接続を捌く」が可能
 
 これらをまとめるとこうなります．
 
-| モデル                         | 代表                   | CPU 並列 | I/O 多重化        | コーディング               |
-| ------------------------------ | ---------------------- | -------- | ----------------- | -------------------------- |
-| 1 接続 1 プロセス (fork)       | 古典 CGI               | 〇       | × (ブロック)      | 単純                       |
-| 1 接続 1 スレッド              | Apache worker MPM      | 〇       | × (ブロック)      | 単純だが共有注意           |
-| シングルスレッドイベントループ | Node.js                | ×        | 〇 (epoll)        | コールバック / async-await |
-| マルチプロセスイベントループ   | Nginx, Envoy           | 〇       | 〇 (epoll)        | コールバック               |
-| M:N グリーンスレッド           | Go, Erlang, Java 21    | 〇       | 〇 (内部で epoll) | 同期風                     |
+| モデル                         | 代表                | CPU 並列 | I/O 多重化        | コーディング               |
+| ------------------------------ | ------------------- | -------- | ----------------- | -------------------------- |
+| 1 接続 1 プロセス (fork)       | 古典 CGI            | 〇       | × (ブロック)      | 単純                       |
+| 1 接続 1 スレッド              | Apache worker MPM   | 〇       | × (ブロック)      | 単純だが共有注意           |
+| シングルスレッドイベントループ | Node.js             | ×        | 〇 (epoll)        | コールバック / async-await |
+| マルチプロセスイベントループ   | Nginx, Envoy        | 〇       | 〇 (epoll)        | コールバック               |
+| M:N グリーンスレッド           | Go, Erlang, Java 21 | 〇       | 〇 (内部で epoll) | 同期風                     |
 
 ## 実装を覗く: Apache / Nginx / Node.js / Go
 
