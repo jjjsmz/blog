@@ -1,0 +1,49 @@
+name: rfc-refresh
+
+on:
+  schedule:
+    - cron: "0 0 */7 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+env:
+  BRANCH: chore/rfc-refresh
+  TITLE: "chore(rfc): refresh src/data/rfc.json"
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: build rfc.json
+        run: node scripts/build-rfc-data.mjs > "$RUNNER_TEMP/stats.txt"
+
+      - name: open pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --quiet src/data/rfc.json; then
+            echo "no change" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -C "$BRANCH"
+          git commit -m "$TITLE" src/data/rfc.json
+          git push -f origin "$BRANCH"
+
+          { echo '```'; cat "$RUNNER_TEMP/stats.txt"; echo '```'; } \
+            | tee -a "$GITHUB_STEP_SUMMARY" > "$RUNNER_TEMP/body.md"
+
+          # PR 作成 or PR 更新
+          gh pr create --base main --head "$BRANCH" --title "$TITLE" --body-file "$RUNNER_TEMP/body.md" \
+            --reviewer jjjsmz \
+            || gh pr edit "$BRANCH" --title "$TITLE" --body-file "$RUNNER_TEMP/body.md"
