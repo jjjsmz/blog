@@ -82568,5 +82568,25 @@
     "wg": "spring",
     "technology": "mpls-te",
     "subtopic": "spring"
+  },
+  {
+    "number": 10039,
+    "title": "Interconnecting EVPN and IPVPN Domains",
+    "year": 2026,
+    "status": "PROPOSED STANDARD",
+    "stream": "IETF",
+    "wg": "bess",
+    "technology": "routing-bgp",
+    "subtopic": "bess"
+  },
+  {
+    "number": 10042,
+    "title": "Post-Quantum/Traditional Hybrid Key Exchange with the Module-Lattice-Based Key-Encapsulation Mechanism for Use in SSH",
+    "year": 2026,
+    "status": "INFORMATIONAL",
+    "stream": "IETF",
+    "wg": "sshm",
+    "technology": "kerberos-sasl",
+    "subtopic": "sshm"
   }
 ]
