@@ -82400,6 +82400,16 @@
     "subtopic": "tls"
   },
   {
+    "number": 10016,
+    "title": "System-Defined Configuration",
+    "year": 2026,
+    "status": "PROPOSED STANDARD",
+    "stream": "IETF",
+    "wg": "netmod",
+    "technology": "yang",
+    "subtopic": "netmod"
+  },
+  {
     "number": 10017,
     "title": "OAuth 2.0 for Browser-Based Applications",
     "year": 2026,
@@ -82520,6 +82530,16 @@
     "subtopic": "lamps"
   },
   {
+    "number": 10033,
+    "title": "Hash-Based Signatures: State and Backup Management",
+    "year": 2026,
+    "status": "INFORMATIONAL",
+    "stream": "IETF",
+    "wg": "pquip",
+    "technology": "pkix",
+    "subtopic": "pquip"
+  },
+  {
     "number": 10034,
     "title": "RTP Payload Format for Visual Volumetric Video-Based Coding (V3C)",
     "year": 2026,
@@ -82578,6 +82598,26 @@
     "wg": "bess",
     "technology": "routing-bgp",
     "subtopic": "bess"
+  },
+  {
+    "number": 10040,
+    "title": "Locator/ID Separation Protocol (LISP) Geo-Coordinates",
+    "year": 2026,
+    "status": "EXPERIMENTAL",
+    "stream": "IETF",
+    "wg": "lisp",
+    "technology": "mobility",
+    "subtopic": "lisp"
+  },
+  {
+    "number": 10041,
+    "title": "Advertising Unreachable Links in OSPF",
+    "year": 2026,
+    "status": "PROPOSED STANDARD",
+    "stream": "IETF",
+    "wg": "lsr",
+    "technology": "routing-igp",
+    "subtopic": "lsr"
   },
   {
     "number": 10042,
