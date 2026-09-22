@@ -82530,6 +82530,16 @@
     "subtopic": "lamps"
   },
   {
+    "number": 10032,
+    "title": "The AEGIS Authenticated Encryption Algorithms",
+    "year": 2026,
+    "status": "INFORMATIONAL",
+    "stream": "IRTF",
+    "wg": null,
+    "technology": "era-2020s",
+    "subtopic": "none"
+  },
+  {
     "number": 10033,
     "title": "Hash-Based Signatures: State and Backup Management",
     "year": 2026,
@@ -82628,5 +82638,15 @@
     "wg": "sshm",
     "technology": "kerberos-sasl",
     "subtopic": "sshm"
+  },
+  {
+    "number": 10050,
+    "title": "Protocol-Specific Profiles for JSContact",
+    "year": 2026,
+    "status": "PROPOSED STANDARD",
+    "stream": "IETF",
+    "wg": "calext",
+    "technology": "json-cbor",
+    "subtopic": "calext"
   }
 ]
