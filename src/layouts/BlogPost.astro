@@ -50,6 +50,7 @@ headings.unshift({ depth: 1, text: title, slug: title });
       </div>
     </article>
   </div>
+  <dialog class='figure-zoom' aria-label='図の拡大表示'></dialog>
 </Layout>
 
 <style>
@@ -64,6 +65,38 @@ headings.unshift({ depth: 1, text: title, slug: title });
       @media (min-width: 768px) {
         width: calc(100% - 12em);
       }
+    }
+  }
+
+  /* 拡大表示．dialog を使うと Esc での閉じる・背景の不活性化・フォーカストラップが
+     ブラウザ側で面倒を見てくれる */
+  .figure-zoom {
+    /* 図をぴったり包む．既定だと dialog のほうが大きく，余白が押し出される */
+    width: fit-content;
+    height: fit-content;
+    max-width: 100vw;
+    max-height: 100vh;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: zoom-out;
+    overscroll-behavior: contain;
+    /* showModal() が dialog 自体にフォーカスを当てるので枠線が出てしまう．
+       閉じる操作は Esc とクリックの両方が効くため外して良い */
+    outline: none;
+
+    &::backdrop {
+      background: rgb(15 20 35 / 0.97);
+    }
+
+    img,
+    svg {
+      display: block;
+      width: auto;
+      height: auto;
+      max-width: 96vw;
+      max-height: 96vh;
+      border-radius: var(--radius-md);
     }
   }
 
@@ -130,6 +163,12 @@ headings.unshift({ depth: 1, text: title, slug: title });
       margin: 2em auto;
     }
 
+    /* 図は本文では列幅に収めて全体を見せ，クリックで画面いっぱいまで拡大する
+       (拡大の制御は下のスクリプト) */
+    .zoomable {
+      cursor: zoom-in;
+    }
+
     .mermaid-container {
       display: flex;
       justify-content: center;
@@ -142,6 +181,7 @@ headings.unshift({ depth: 1, text: title, slug: title });
       }
     }
   }
+
 </style>
 
 <script is:inline>
@@ -170,6 +210,54 @@ headings.unshift({ depth: 1, text: title, slug: title });
     }
   }
   attachListenerToCopyButton();
+
+  // 図は本文では列幅に収まっているため，狭い画面では文字が小さい．
+  // クリックで画面いっぱいまで拡大する．ページ内の dialog なので別タブには飛ばない．
+  function setUpFigureZoom() {
+    const dialog = document.querySelector('dialog.figure-zoom');
+    if (!dialog) return;
+
+    // 拡大表示のどこをクリックしても閉じる (背景・図のどちらでも)
+    dialog.addEventListener('click', () => dialog.close());
+    dialog.addEventListener('close', () => {
+      dialog.replaceChildren();
+    });
+
+    function zoom(figure) {
+      const clone = figure.cloneNode(true);
+
+      // インライン SVG は width="100%" で描かれるため，複製すると幅が決まらない．
+      // viewBox から実寸を読んで，画面に収まる大きさを直接指定する
+      const viewBox = figure.viewBox?.baseVal;
+      if (viewBox?.width) {
+        const scale = Math.min(
+          (window.innerWidth * 0.96) / viewBox.width,
+          (window.innerHeight * 0.96) / viewBox.height,
+        );
+        clone.style.width = `${viewBox.width * scale}px`;
+        clone.style.height = `${viewBox.height * scale}px`;
+        clone.style.maxWidth = 'none';
+      }
+
+      dialog.replaceChildren(clone);
+      dialog.showModal();
+    }
+
+    function registerFigures() {
+      const figures = document.querySelectorAll('.prose img, .mermaid-container svg');
+      for (const figure of figures) {
+        if (figure.classList.contains('zoomable')) continue;
+
+        figure.classList.add('zoomable');
+        figure.addEventListener('click', () => zoom(figure));
+      }
+    }
+
+    registerFigures();
+    // mermaid の SVG は描画がクライアント側で後から差し込まれるので，そのたびに登録する
+    document.addEventListener('mermaid-rendered', registerFigures);
+  }
+  setUpFigureZoom();
 </script>
 
 {needsMermaid && <script is:inline type='module' src='/js/mermaid.js' />}

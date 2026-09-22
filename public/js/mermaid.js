@@ -40,6 +40,8 @@ async function initMermaid() {
             svgEle.setAttribute('role', 'img');
             svgEle.setAttribute('aria-label', 'mermaid diagram');
           }
+
+          document.dispatchEvent(new CustomEvent('mermaid-rendered'));
         }
       } catch (error) {
         console.error(`Mermaid rendering error for block ${index}:`, error);
