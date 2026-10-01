@@ -82648,5 +82648,15 @@
     "wg": "calext",
     "technology": "json-cbor",
     "subtopic": "calext"
+  },
+  {
+    "number": 10052,
+    "title": "Performance Measurement with Asymmetrical Traffic Using the Simple Two-Way Active Measurement Protocol (STAMP)",
+    "year": 2026,
+    "status": "PROPOSED STANDARD",
+    "stream": "IETF",
+    "wg": "ippm",
+    "technology": "measurement",
+    "subtopic": "ippm"
   }
 ]
