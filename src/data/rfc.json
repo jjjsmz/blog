@@ -82640,6 +82640,16 @@
     "subtopic": "sshm"
   },
   {
+    "number": 10049,
+    "title": "Roughtime: A Protocol for Rough Time Synchronization",
+    "year": 2026,
+    "status": "EXPERIMENTAL",
+    "stream": "IETF",
+    "wg": "ntp",
+    "technology": "time",
+    "subtopic": "ntp"
+  },
+  {
     "number": 10050,
     "title": "Protocol-Specific Profiles for JSContact",
     "year": 2026,
@@ -82658,5 +82668,35 @@
     "wg": "ippm",
     "technology": "measurement",
     "subtopic": "ippm"
+  },
+  {
+    "number": 10053,
+    "title": "A Framework for Computing-Aware Traffic Steering (CATS)",
+    "year": 2026,
+    "status": "INFORMATIONAL",
+    "stream": "IETF",
+    "wg": "cats",
+    "technology": "era-2020s",
+    "subtopic": "cats"
+  },
+  {
+    "number": 10054,
+    "title": "Computing-Aware Traffic Steering (CATS) Problem Statement, Use Cases, and Requirements",
+    "year": 2026,
+    "status": "INFORMATIONAL",
+    "stream": "IETF",
+    "wg": "cats",
+    "technology": "era-2020s",
+    "subtopic": "cats"
+  },
+  {
+    "number": 10065,
+    "title": "A YANG Data Model and RADIUS Extension for Policy-Based Network Access Control",
+    "year": 2026,
+    "status": "PROPOSED STANDARD",
+    "stream": "IETF",
+    "wg": "opsawg",
+    "technology": "netmgmt",
+    "subtopic": "opsawg"
   }
 ]
