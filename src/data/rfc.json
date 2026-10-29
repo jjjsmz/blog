@@ -57423,7 +57423,7 @@
     "number": 7405,
     "title": "Case-Sensitive String Support in ABNF",
     "year": 2014,
-    "status": "PROPOSED STANDARD",
+    "status": "INTERNET STANDARD",
     "stream": "IETF",
     "wg": null,
     "technology": "era-2010s",
@@ -82400,6 +82400,16 @@
     "subtopic": "tls"
   },
   {
+    "number": 10016,
+    "title": "System-Defined Configuration",
+    "year": 2026,
+    "status": "PROPOSED STANDARD",
+    "stream": "IETF",
+    "wg": "netmod",
+    "technology": "yang",
+    "subtopic": "netmod"
+  },
+  {
     "number": 10017,
     "title": "OAuth 2.0 for Browser-Based Applications",
     "year": 2026,
@@ -82520,6 +82530,26 @@
     "subtopic": "lamps"
   },
   {
+    "number": 10032,
+    "title": "The AEGIS Authenticated Encryption Algorithms",
+    "year": 2026,
+    "status": "INFORMATIONAL",
+    "stream": "IRTF",
+    "wg": null,
+    "technology": "era-2020s",
+    "subtopic": "none"
+  },
+  {
+    "number": 10033,
+    "title": "Hash-Based Signatures: State and Backup Management",
+    "year": 2026,
+    "status": "INFORMATIONAL",
+    "stream": "IETF",
+    "wg": "pquip",
+    "technology": "pkix",
+    "subtopic": "pquip"
+  },
+  {
     "number": 10034,
     "title": "RTP Payload Format for Visual Volumetric Video-Based Coding (V3C)",
     "year": 2026,
@@ -82568,5 +82598,145 @@
     "wg": "spring",
     "technology": "mpls-te",
     "subtopic": "spring"
+  },
+  {
+    "number": 10039,
+    "title": "Interconnecting EVPN and IPVPN Domains",
+    "year": 2026,
+    "status": "PROPOSED STANDARD",
+    "stream": "IETF",
+    "wg": "bess",
+    "technology": "routing-bgp",
+    "subtopic": "bess"
+  },
+  {
+    "number": 10040,
+    "title": "Locator/ID Separation Protocol (LISP) Geo-Coordinates",
+    "year": 2026,
+    "status": "EXPERIMENTAL",
+    "stream": "IETF",
+    "wg": "lisp",
+    "technology": "mobility",
+    "subtopic": "lisp"
+  },
+  {
+    "number": 10041,
+    "title": "Advertising Unreachable Links in OSPF",
+    "year": 2026,
+    "status": "PROPOSED STANDARD",
+    "stream": "IETF",
+    "wg": "lsr",
+    "technology": "routing-igp",
+    "subtopic": "lsr"
+  },
+  {
+    "number": 10042,
+    "title": "Post-Quantum/Traditional Hybrid Key Exchange with the Module-Lattice-Based Key-Encapsulation Mechanism for Use in SSH",
+    "year": 2026,
+    "status": "INFORMATIONAL",
+    "stream": "IETF",
+    "wg": "sshm",
+    "technology": "kerberos-sasl",
+    "subtopic": "sshm"
+  },
+  {
+    "number": 10049,
+    "title": "Roughtime: A Protocol for Rough Time Synchronization",
+    "year": 2026,
+    "status": "EXPERIMENTAL",
+    "stream": "IETF",
+    "wg": "ntp",
+    "technology": "time",
+    "subtopic": "ntp"
+  },
+  {
+    "number": 10050,
+    "title": "Protocol-Specific Profiles for JSContact",
+    "year": 2026,
+    "status": "PROPOSED STANDARD",
+    "stream": "IETF",
+    "wg": "calext",
+    "technology": "json-cbor",
+    "subtopic": "calext"
+  },
+  {
+    "number": 10051,
+    "title": "Task Extensions to iCalendar",
+    "year": 2026,
+    "status": "PROPOSED STANDARD",
+    "stream": "IETF",
+    "wg": "calext",
+    "technology": "json-cbor",
+    "subtopic": "calext"
+  },
+  {
+    "number": 10052,
+    "title": "Performance Measurement with Asymmetrical Traffic Using the Simple Two-Way Active Measurement Protocol (STAMP)",
+    "year": 2026,
+    "status": "PROPOSED STANDARD",
+    "stream": "IETF",
+    "wg": "ippm",
+    "technology": "measurement",
+    "subtopic": "ippm"
+  },
+  {
+    "number": 10053,
+    "title": "A Framework for Computing-Aware Traffic Steering (CATS)",
+    "year": 2026,
+    "status": "INFORMATIONAL",
+    "stream": "IETF",
+    "wg": "cats",
+    "technology": "era-2020s",
+    "subtopic": "cats"
+  },
+  {
+    "number": 10054,
+    "title": "Computing-Aware Traffic Steering (CATS) Problem Statement, Use Cases, and Requirements",
+    "year": 2026,
+    "status": "INFORMATIONAL",
+    "stream": "IETF",
+    "wg": "cats",
+    "technology": "era-2020s",
+    "subtopic": "cats"
+  },
+  {
+    "number": 10055,
+    "title": "Configuring UDP Sockets for Explicit Congestion Notification (ECN) for Common Platforms",
+    "year": 2026,
+    "status": "INFORMATIONAL",
+    "stream": "IETF",
+    "wg": "tsvwg",
+    "technology": "transport-misc",
+    "subtopic": "tsvwg"
+  },
+  {
+    "number": 10065,
+    "title": "A YANG Data Model and RADIUS Extension for Policy-Based Network Access Control",
+    "year": 2026,
+    "status": "PROPOSED STANDARD",
+    "stream": "IETF",
+    "wg": "opsawg",
+    "technology": "netmgmt",
+    "subtopic": "opsawg"
+  },
+  {
+    "number": 10066,
+    "title": "Path Computation Element Communication Protocol (PCEP) Extensions for Signaling Multipath Information",
+    "year": 2026,
+    "status": "PROPOSED STANDARD",
+    "stream": "IETF",
+    "wg": "pce",
+    "technology": "mpls-te",
+    "subtopic": "pce"
+  },
+  {
+    "number": 10067,
+    "title": "Path Computation Element Communication Protocol (PCEP) Extensions for Associated Bidirectional Segment Routing (SR) LSPs",
+    "year": 2026,
+    "status": "PROPOSED STANDARD",
+    "stream": "IETF",
+    "wg": "pce",
+    "technology": "mpls-te",
+    "subtopic": "pce"
   }
 ]
