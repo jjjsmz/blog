@@ -333,11 +333,11 @@ pre {
     color: var(--color-white-300);
     text-decoration: none;
     word-break: break-all;
+  }
 
-    &:hover {
-      color: var(--text-bright);
-      text-decoration: underline;
-    }
+  > a:hover {
+    color: var(--text-bright);
+    text-decoration: underline;
   }
 
   .github-permalink-embed-meta {

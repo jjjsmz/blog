@@ -5,29 +5,12 @@ type Props = HTMLAttributes<'a'>;
 
 const { href, class: className, ...props } = Astro.props;
 
-const toAutoAriaLabel = (value?: string | URL | null) => {
-  const normalized = value?.toString().trim() ?? '';
-  if (!normalized || normalized === '/') {
-    return 'blog home';
-  }
-
-  const lastSegment = normalized
-    .split('#')[0]
-    .split('?')[0]
-    .replace(/\/+$/, '')
-    .split('/')
-    .filter(Boolean)
-    .at(-1);
-
-  return lastSegment ? decodeURIComponent(lastSegment).replace(/[-_]+/g, ' ') : 'link';
-};
-
 const { pathname } = Astro.url;
 const isActive = href === pathname || href === pathname.replace(/\/$/, '');
-const computedAriaLabel = toAutoAriaLabel(href);
 ---
 
-<a href={href} class:list={[className, { active: isActive }]} {...props} aria-label={computedAriaLabel}>
+<!-- biome-ignore lint/a11y/useAnchorContent: <slot /> provides the link text -->
+<a href={href} class:list={[className, { active: isActive }]} {...props}>
   <slot />
 </a>
 <style>
