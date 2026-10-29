@@ -57423,7 +57423,7 @@
     "number": 7405,
     "title": "Case-Sensitive String Support in ABNF",
     "year": 2014,
-    "status": "PROPOSED STANDARD",
+    "status": "INTERNET STANDARD",
     "stream": "IETF",
     "wg": null,
     "technology": "era-2010s",
@@ -82660,6 +82660,16 @@
     "subtopic": "calext"
   },
   {
+    "number": 10051,
+    "title": "Task Extensions to iCalendar",
+    "year": 2026,
+    "status": "PROPOSED STANDARD",
+    "stream": "IETF",
+    "wg": "calext",
+    "technology": "json-cbor",
+    "subtopic": "calext"
+  },
+  {
     "number": 10052,
     "title": "Performance Measurement with Asymmetrical Traffic Using the Simple Two-Way Active Measurement Protocol (STAMP)",
     "year": 2026,
@@ -82708,5 +82718,25 @@
     "wg": "opsawg",
     "technology": "netmgmt",
     "subtopic": "opsawg"
+  },
+  {
+    "number": 10066,
+    "title": "Path Computation Element Communication Protocol (PCEP) Extensions for Signaling Multipath Information",
+    "year": 2026,
+    "status": "PROPOSED STANDARD",
+    "stream": "IETF",
+    "wg": "pce",
+    "technology": "mpls-te",
+    "subtopic": "pce"
+  },
+  {
+    "number": 10067,
+    "title": "Path Computation Element Communication Protocol (PCEP) Extensions for Associated Bidirectional Segment Routing (SR) LSPs",
+    "year": 2026,
+    "status": "PROPOSED STANDARD",
+    "stream": "IETF",
+    "wg": "pce",
+    "technology": "mpls-te",
+    "subtopic": "pce"
   }
 ]
