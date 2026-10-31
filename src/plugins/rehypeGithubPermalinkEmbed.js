@@ -79,7 +79,14 @@ const detectLanguageFromPath = (path) => {
   const ext = fileName.includes('.')
     ? fileName.split('.').pop().toLowerCase()
     : '';
-  return ext || null;
+
+  if (ext === 'h') {
+    return 'c';
+  } else if (ext === 'hpp') {
+    return 'cpp';
+  }
+
+  return ext || 'text';
 };
 
 const extractLineNodes = (root) => {
@@ -156,7 +163,7 @@ const createHighlightedCodeNode = async ({ snippet, path, startLine }) => {
 
   try {
     const root = await codeToHast(snippet, {
-      lang: detectedLanguage || 'text',
+      lang: detectedLanguage,
       theme: SHIKI_THEME,
     });
     lineNodes = extractLineNodes(root);

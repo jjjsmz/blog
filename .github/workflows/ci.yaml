@@ -9,43 +9,23 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  setup:
-    runs-on: ubuntu-latest
-    outputs:
-      cache-hit: ${{ steps.restore-cache.outputs.cache-hit }}
-    steps:
-      - uses: actions/checkout@v7
-      - name: setup node
-        uses: actions/setup-node@v7
-        with:
-          node-version: 24
-      - name: restore cache
-        id: restore-cache
-        uses: actions/cache@v6
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-      - name: install deps
-        if: steps.restore-cache.outputs.cache-hit != 'true'
-        run: npm ci
-
   verify:
-    needs: setup
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        task: [ "fmt:check", "textlint", "astro check", "lint" ]
     steps:
       - uses: actions/checkout@v7
       - name: setup node
         uses: actions/setup-node@v7
         with:
           node-version: 24
-      - name: restore cache
-        uses: actions/cache@v6
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-      - name: run ${{ matrix.task }}
-        run: npm run ${{ matrix.task }}
+          cache: npm
+      - name: install deps
+        run: npm ci
+      - parallel:
+          - name: run fmt:check
+            run: npm run fmt:check
+          - name: run textlint
+            run: npm run textlint
+          - name: run astro check
+            run: npm run astro check
+          - name: run lint
+            run: npm run lint
