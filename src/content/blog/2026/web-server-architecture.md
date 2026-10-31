@@ -1,6 +1,6 @@
 ---
 title: Web サーバの仕組み
-pubDate: 2026-09-10 # TODO: 公開前に日付変更
+pubDate: 2026-10-31
 description: Web サーバの仕組みを低レイヤから理解する．NIC，カーネル，ネットワークスタック，スケジューラ，メモリアロケータ，アプリケーションプロセスの連携について．
 tags: ['web', 'network', 'os', 'architecture', 'performance']
 ---
@@ -207,7 +207,7 @@ Linux のシステムコール実装を覗くなら [Linux Inside](https://0xax.
 
 ### fd が多いとなぜ重いのか
 
-`ulimit -n` で制限がかかっていることはよく知られています．Linux のディストリビューションでデフォルトは 1024 のことが多く，システム全体の上限は `/proc/sys/fs/file-max` で設定されます．
+`ulimit -n` で制限がかかっていることはよく知られています．多くのディストリビューションで soft limit の既定は 1024 ですが，hard limit はそれよりずっと大きく，プロセス自身が soft limit を hard limit まで引き上げられます．システム全体の上限は `/proc/sys/fs/file-max` ですが，systemd は起動時にこれを `LONG_MAX` に引き上げます ([`bump_file_max_and_nr_open()`](https://github.com/systemd/systemd/blob/06b15f6bb61c84d065e25a2be0c848e89d95ea91/src/core/main.c))．後述の `file-nr` の 3 列目が `9223372036854775807` なのはこのためで，systemd 環境で実際に効くのはプロセスごとの `ulimit -n` です．
 
 上限を上げれば確かに 1024 を超える fd を持つことはできますが，fd 数に制限がかかっているのは fd に伴うカーネルリソースの消費量が増えるからです．fd ひとつひとつにカーネル側のメモリと処理コストが付いてきます．以下に主要な負荷を並べます．
 
@@ -615,7 +615,7 @@ int main()
 
 1 接続ごとに作り捨てするのではなく，あらかじめ N 個のワーカ (プロセスまたはスレッド) を起動しておいてキューから取り出す **pre-fork** / **thread pool** モデルがあります．Apache の prefork / worker MPM はまさにこの系譜で，後で詳しく見ます．
 
-ただしこれでも N の上限があり，それ以上の同時接続では誰かが待たされます．「N をどんどん増やしていけば良いのでは?」という素朴な発想が次の章で粉砕されます．
+ただしこれでも N の上限があり，それ以上の同時接続では誰かが待たされます．N をどんどん増やしていけば良いわけではないことを次章で説明します．
 
 ## C10K 問題とコンテキストスイッチのコスト
 
@@ -735,7 +735,7 @@ epoll の重要な選択肢が LT (level-triggered，デフォルト) と ET (ed
 - **LT**: ソケットに読めるデータがある間，`epoll_wait` は何度でも通知する (`poll(2)` と同じセマンティクス)
 - **ET**: 「読めない → 読める」「書けない → 書ける」のエッジ (状態遷移) でしか通知しない
 
-ET の方が `epoll_wait` の呼び出し回数を減らせて高速ですが，「通知が来たら EAGAIN になるまで読み切る」アプリ側の責任が重くなります．Nginx は ET，libuv は LT，Go の netpoller は ET です (`netpoll_epoll.go` で `EPOLLET` を指定しています)．
+ET の方が `epoll_wait` の呼び出し回数を減らせて高速ですが，「通知が来たら EAGAIN になるまで読み切る」アプリ側の責任が重くなります．Nginx は接続ソケットを ET で登録します (listen ソケットは LT)．libuv は LT，Go の netpoller は ET です (`netpoll_epoll.go` で `EPOLLET` を指定しています)．
 
 実際に動作するサーバはこんな形になります．
 
@@ -871,64 +871,135 @@ epoll を持つことで「1 スレッドで多数の接続を捌く」が可能
 
 ### Apache httpd
 
-Apache は **MPM (Multi-Processing Module)** という抽象でリクエスト処理戦略を差し替える設計です．主要な 3 つを並行モデルの進化として並べると次のようになります．リポジトリは https://github.com/apache/httpd で，実装の中心は https://github.com/apache/httpd/blob/trunk/server/mpm/event/event.c です．
+Apache httpd (以下 Apache) は，接続をどのプロセス・スレッドで処理するかを MPM (Multi-Processing Module) というモジュールに切り出しています．prefork，worker，event の 3 つは，ここまで見てきた「プロセス」「スレッドプール」「epoll」にそれぞれ対応します．同じ設定ファイルとモジュールのまま並行モデルだけを差し替えられるので，3 つのモデルを比べる題材にちょうどよいです．
+
+#### scoreboard と共通ディレクティブ
+
+親プロセスは scoreboard という共有メモリ上の表で，子プロセスとスレッドの状態を管理しています．scoreboard の大きさと同時処理数は次のディレクティブで決まります (既定値は [mpm_common](https://httpd.apache.org/docs/2.4/mod/mpm_common.html) より)．
+
+| ディレクティブ           | 意味                                           | prefork の既定 | worker / event の既定 |
+| ------------------------ | ---------------------------------------------- | -------------- | --------------------- |
+| `ServerLimit`            | 子プロセス数の上限                             | 256            | 16                    |
+| `ThreadsPerChild`        | 子プロセスあたりの worker スレッド数           | (使わない)     | 25                    |
+| `ThreadLimit`            | `ThreadsPerChild` に設定できる上限             | (使わない)     | 64                    |
+| `MaxRequestWorkers`      | 同時にリクエストを処理できる数                 | 256 (プロセス) | 400 (スレッド)        |
+| `MaxConnectionsPerChild` | 子プロセスが処理する接続数の上限．0 なら無期限 | 0              | 0                     |
+
+`MaxRequestWorkers` は 2.3.13 より前は `MaxClients`，`MaxConnectionsPerChild` は 2.3.9 より前は `MaxRequestsPerChild` という名前でした．2.4 系では古い名前も受け付けます．
+
+worker と event では `MaxRequestWorkers / ThreadsPerChild` が子プロセス数になります．既定の 400 は `ServerLimit` 16 × `ThreadsPerChild` 25 です．`MaxRequestWorkers` だけを増やしても子プロセスが 16 を超えられないので，`ServerLimit` も一緒に上げる必要があります．チューニングで最初に踏みやすい罠です．
 
 #### prefork MPM
 
 ```mermaid prefork MPM
 graph TB
-  M["master"] --> W1["child<br/>1 接続を処理"]
-  M --> W2["child<br/>1 接続を処理"]
-  M --> W3["child<br/>1 接続を処理"]
+  M["親プロセス"] --> W1["子プロセス<br/>1 接続を処理"]
+  M --> W2["子プロセス<br/>1 接続を処理"]
+  M --> W3["子プロセス<br/>1 接続を処理"]
   M --> Wn["..."]
 ```
 
-master が起動時に複数の子プロセスを fork し，各子が 1 接続だけを担当します (処理が終わると次の接続を accept する)．スレッドを使わないため **モジュールが thread-safe である必要がない**，これが prefork の存在意義です．
+prefork では，親プロセスがあらかじめ子プロセスを fork しておき，各子プロセスが accept から接続のクローズまでを担当します．[1 接続 = 1 プロセス](#1-接続--1-プロセス-fork) の echo サーバとの違いは fork のタイミングで，接続ごとではなく起動時と空きが減ったときにだけ fork します．
 
-- **メリット**: モジュールが thread-unsafe でも安全に動く．プロセスが分離しているので 1 接続のクラッシュが他に波及しない．mod_php の伝統的な選択肢
-- **デメリット**: 子プロセス数 = 同時接続上限．メモリ消費が大きい (各 child が独自のアドレス空間を持つ)．keep-alive 接続が増えると child が遊んでいてもブロックされる
-- **向くワークロード**: thread-unsafe なモジュール (古典的 mod_php，mod_perl) を載せた中小規模サイト．同時接続数が数百以下で予測可能なシステム
+子プロセスのメインループを見ると，accept した接続を `ap_process_connection()` に渡し，戻ってきたら次の accept に戻る作りになっています．
+
+https://github.com/apache/httpd/blob/1e06e9860794ce39605b79a0a787abfe084e5677/server/mpm/prefork/prefork.c#L641-L669
+
+`ap_process_connection()` は，keep-alive が続く間は同じ接続の次のリクエストを読み続けます (中身は worker MPM の節で見ます)．そのため keep-alive 中のクライアントは，何も送ってこなくても子プロセスを 1 つ占有します．そのため，プロセス過多の場合は `KeepAliveTimeout` を小さくすることがあります．
+
+子プロセスの数も親が増減させます．アイドルな子プロセスが `MinSpareServers` (既定 5) を下回ると，1 秒ごとに 1，2，4，… と倍々で fork し，毎秒 32 個で頭打ちになります．アイドルな子が `MaxSpareServers` (既定 10) を超えると子プロセスを減らします．
+
+スレッドを使わないので，mod_php のようなスレッドセーフでないモジュールのために今でも使われます．プロセスが分離しているので，1 つのリクエストでモジュールがクラッシュしても他の接続に波及しません．代わりに同時処理数 = 子プロセス数となり，プロセスごとに PHP インタプリタを抱える mod_php 環境では，接続数より先にメモリが尽きやすくなります．
 
 #### worker MPM
 
 ```mermaid worker MPM
 graph TB
-  M["master"] --> P1["child #1"]
-  M --> P2["child #2"]
-  M --> Pn["..."]
-  P1 --> T11["thread"]
-  P1 --> T12["thread"]
-  P1 --> T13["thread"]
-  P2 --> T21["thread"]
-  P2 --> T22["thread"]
-  P2 --> T23["thread"]
+  M["親プロセス"] --> P1["子プロセス #1"]
+  M --> P2["子プロセス #2"]
+  P1 --> L1["listener スレッド<br/>accept 専任"]
+  P1 --> Q1[("キュー")]
+  P1 --> T11["worker スレッド"]
+  P1 --> T12["worker スレッド"]
+  L1 -. "accept した接続" .-> Q1
+  Q1 -. "取り出して処理" .-> T11
+  P2 --> L2["listener スレッド"]
+  P2 --> T21["worker スレッド"]
 ```
 
-各 child プロセスが N 本のスレッドを持ち，スレッドプールで accept します．プロセス × スレッドのハイブリッドで，メモリ効率は prefork より良いものの，1 スレッド = 1 接続を block する基本構造は変わりません．
+worker では，各子プロセスが `ThreadsPerChild` 本の worker スレッドと，accept 専任の listener スレッド 1 本を持ちます．listener は accept した接続をキューに積み，空いている worker スレッドがそれを取り出して処理します．listener は空いている worker スレッドが現れるまで accept しません．
 
-- **メリット**: prefork より省メモリ，同時接続数を伸ばしやすい．プロセス分離もそこそこ確保される
-- **デメリット**: モジュールが thread-safe でなければならない (mod_php は使えない)．keep-alive で idle なスレッドが座席を占有する問題は残る
-- **向くワークロード**: thread-safe な動的モジュール (mod_proxy，mod_lua) や軽い静的配信．keep-alive の比率が低めの API バックエンド
+https://github.com/apache/httpd/blob/1e06e9860794ce39605b79a0a787abfe084e5677/server/mpm/worker/worker.c#L580-L593
+
+接続を受け取った worker スレッドは，prefork と同じく `ap_process_connection()` を呼びます．HTTP の場合，その中身は次のループです．
+
+https://github.com/apache/httpd/blob/1e06e9860794ce39605b79a0a787abfe084e5677/modules/http/http_core.c#L180-L241
+
+リクエストを処理し終えると，keep-alive なら scoreboard を `SERVER_BUSY_KEEPALIVE` にし，ソケットのタイムアウトを `KeepAliveTimeout` にして次の `ap_read_request()` でブロックします．接続が閉じるまで worker スレッドは戻ってきません．scoreboard が `SERVER_BUSY_KEEPALIVE` で埋まると新しい接続は accept されず，accept queue に溜まります．
+
+prefork と比べると，スレッドがアドレス空間を共有するぶん同じメモリで多くの接続を処理できます．一方，モジュールはスレッドセーフでなければならず，スレッドセーフでないビルド (非 ZTS) の mod_php は載せられません．1 つのスレッドが落とすと同じ子プロセスのスレッドが巻き添えになる点も prefork と違います．
 
 #### event MPM
 
-worker MPM の **keep-alive 占有問題** を解決するのが event MPM (Apache 2.4 でデフォルトに昇格) です．
+event も worker と同じく listener スレッド 1 本と worker スレッド群からなります．違いは worker スレッドが接続を手放すタイミングです．event の worker スレッドは，レスポンスを書き終えた時点で接続を listener に返します．listener は keep-alive 中の接続をまとめて epoll で監視し，次のリクエストが届いたら，その接続を再び空いている worker スレッドに渡します．
 
-```mermaid event MPM
-graph TB
-  M["master"] --> P["child"]
-  P --> L["listener thread<br/>(epoll/kqueue)<br/>idle 接続はここが保持"]
-  P --> Pool["worker thread pool"]
-  L -. "データが来た<br/>接続だけ渡す" .-> Pool
+接続の状態遷移を次に示します．`PROCESSING` の間は worker スレッドが接続を持ち，それ以外の待ちは listener スレッドが持ちます．
+
+```mermaid event MPM の接続状態
+stateDiagram-v2
+  [*] --> PROCESSING: listener が accept
+  PROCESSING --> WRITE_COMPLETION: レスポンスを生成
+  WRITE_COMPLETION --> WRITE_COMPLETION: 送り切れない分は listener が待つ
+  WRITE_COMPLETION --> KEEPALIVE: 送信完了，keep-alive
+  WRITE_COMPLETION --> LINGER: keep-alive しない
+  KEEPALIVE --> PROCESSING: 次のリクエストが届く
+  KEEPALIVE --> [*]: KeepAliveTimeout
+  LINGER --> [*]
 ```
 
-各 child に listener スレッドが 1 本いて epoll/kqueue で全接続を見張り，新規データが届いた接続だけを worker thread pool に渡します．keep-alive で何もしていない接続はスレッドを占有しません．
+worker スレッド側で keep-alive の接続を listener に預ける部分です．keep-alive 用のキュー (`ka_q`) に積んで `apr_pollset_add()` で listener の pollset (Linux では epoll) に登録したら，`return` して次の接続を取りに行きます．
 
-- **メリット**: keep-alive 接続を効率的に保持．ワーカースレッドが詰まりにくい．Apache のモジュール資産を活かしながら C10K に近いところまでスケール
-- **デメリット**: 内部構造が複雑で，設定とトラブルシュートの難度が上がる．Nginx ほど省メモリではない
-- **向くワークロード**: 既存の Apache 設定資産・モジュールを活かしつつ keep-alive の多い HTTP/1.1 トラフィックを捌きたいケース
+https://github.com/apache/httpd/blob/1e06e9860794ce39605b79a0a787abfe084e5677/server/mpm/event/event.c#L1252-L1287
 
-3 つの MPM の違いは「OS のどの抽象を使うか」(プロセス / スレッド / epoll) の選択そのものです．Apache は古いモジュールエコシステムとの互換性を保ちつつ，戦略を切り替えられる柔軟性を選びました．
+送信も同じ考え方です．遅いクライアントにレスポンスを送り切れなかった場合も，残りは `wc_q` に積んで listener に書き込み可能を待たせます．こうして worker スレッドは「実際に処理している時間」だけ接続を持ちます．mod_status でも worker スレッドが `SERVER_BUSY_KEEPALIVE` で埋まることはなく，keep-alive 中の接続数は子プロセスごとの表の keep-alive 列 (`?auto` 形式なら `ConnsAsyncKeepAlive`) に出ます．
+
+スレッド数を超える接続を受け付けるので，1 プロセスが抱える接続数には別の上限があります．listener は次の条件を満たす間だけ新しい接続を accept します ([event の公式ドキュメント](https://httpd.apache.org/docs/2.4/mod/event.html))．
+
+```text
+接続数 (lingering close 中を除く) < ThreadsPerChild + AsyncRequestWorkerFactor × アイドルな worker スレッド数
+```
+
+https://github.com/apache/httpd/blob/1e06e9860794ce39605b79a0a787abfe084e5677/server/mpm/event/event.c#L519-L537
+
+`AsyncRequestWorkerFactor` の既定値は 2 です．全スレッドがアイドルなら，サーバ全体で `(AsyncRequestWorkerFactor + 1) × MaxRequestWorkers` 接続，既定値なら 3 × 400 = 1200 接続が目安になります．
+
+worker スレッドが埋まっているときに keep-alive 中の接続へ次のリクエストが届くと，listener はその接続を閉じます．コメントにあるとおり，クライアントに別の子プロセスへ繋ぎ直させるためです．
+
+https://github.com/apache/httpd/blob/1e06e9860794ce39605b79a0a787abfe084e5677/server/mpm/event/event.c#L1935-L1948
+
+event でも worker スレッドが接続に張り付く場合が 2 つあります．
+
+- **非同期処理に対応しない入力フィルタがある接続**: `c->clogging_input_filters` が立っていると，`ap_process_http_connection()` は worker MPM と同じ同期ループ (`ap_process_http_sync_connection()`) に入る
+- **バックエンドからレスポンスを流し込む処理**: CGI，FastCGI，プロキシでは，送信待ちの間も worker スレッドが解放されない (公式ドキュメントに記載)
+
+https://github.com/apache/httpd/blob/1e06e9860794ce39605b79a0a787abfe084e5677/modules/http/http_core.c#L243-L251
+
+つまり event が epoll に任せているのは keep-alive と送信の待ちだけで，リクエスト処理中の待ちは worker と同じくスレッドを消費します．後述の Nginx は，アップストリームの応答待ちもイベントループで扱う点が違います．
+
+#### 3 つの MPM の比較
+
+ここまでの違いを表にまとめます．
+
+|                               | prefork                                       | worker                                        | event                                                |
+| ----------------------------- | --------------------------------------------- | --------------------------------------------- | ---------------------------------------------------- |
+| 接続を処理する単位            | 子プロセス                                    | worker スレッド                               | worker スレッド                                      |
+| keep-alive 中の接続を持つもの | 子プロセス                                    | worker スレッド                               | listener スレッド (epoll)                            |
+| モジュールのスレッドセーフ    | 不要                                          | 必要                                          | 必要                                                 |
+| 同時接続数の目安              | `MaxRequestWorkers`                           | `MaxRequestWorkers`                           | `(AsyncRequestWorkerFactor + 1) × MaxRequestWorkers` |
+| 本記事で対応する節            | [プールするという発想](#プールするという発想) | [プールするという発想](#プールするという発想) | [epoll(7)](#epoll7-linux-の主役)                     |
+| 向く用途                      | 非 ZTS の mod_php を残す環境                  | event 非対応のフィルタを使う環境              | 上記以外の大半                                       |
+
+3 つの MPM の違いは，接続の待ち時間をプロセス，スレッド，epoll のどれに持たせるかの違いです．Apache はモジュール資産との互換性を保ったまま，この選択を MPM の差し替えで切り替えられるようにしました．
 
 ### Nginx
 
@@ -936,21 +1007,17 @@ graph TB
 graph TB
   M["master process"] --> W1["worker #1"]
   M --> W2["worker #2"]
-  M --> Wn["worker #N<br/>(N = CPU コア数)"]
+  M --> Wn["worker #N"]
   W1 --- E1[("epoll")]
   W2 --- E2[("epoll")]
   Wn --- En[("epoll")]
 ```
 
-Nginx の設計はシンプルです．master プロセスが特権操作 (権限のある port の bind，ログファイルのオープン) を担当し，**CPU コア数と同じだけの worker** をそれぞれイベントループとして走らせます．各 worker は内部で epoll を回し，1 本のスレッドで数万接続を捌けます．
+Nginx は，master プロセスが特権の必要な操作 (80 番ポートの bind，ログファイルのオープン) と設定の再読み込みを担当し，worker プロセスがそれぞれ epoll のイベントループを回します．worker の数は `worker_processes` で決まり，`auto` なら CPU コア数です．
 
-worker 間の負荷分散は伝統的に `accept_mutex` というロックで「次に accept するのは誰か」を調停していましたが，Linux 3.9 以降は SO_REUSEPORT に切り替えるのが推奨設定 (`listen ... reuseport;`) です．カーネルが自動で接続を分散してくれるためロック競合がなくなります．
+Apache event との違いは，リクエスト処理中の待ちもイベントループに載せている点です．アップストリームの応答待ちや遅いクライアントへの送信でもスレッドを占有しないので，1 つの worker で数万接続を保持できます．その代わり，ブロッキングする処理が 1 つあるとその worker の全接続が止まります．アプリケーションロジックは FastCGI やアップストリームに任せる前提で，Nginx 自身はリバースプロキシや静的ファイル配信 (`sendfile(2)`) を担当することが多いです．
 
-- **メリット**: 圧倒的な省メモリと低レイテンシ．数万〜10 万同時接続を 1 ホストで捌ける．静的ファイル配信は `sendfile(2)` を使ったゼロコピーで NIC 律速まで出る．リバースプロキシとしての設定が成熟
-- **デメリット**: 動的処理は外部 (FastCGI，uWSGI，アップストリーム) に逃がす前提．アプリケーションロジックを直接書きにくい (NJS や Lua で部分的には可能)．ホットリロードはできるが破壊的変更には弱い
-- **向くワークロード**: 静的ファイル配信，リバースプロキシ / API ゲートウェイ，TLS 終端，ロードバランサ．CDN のオリジン．「アプリの前に置くもの」全般
-
-リポジトリは [nginx/nginx](https://github.com/nginx/nginx) です．アーキテクチャの定番解説は AOSA (The Architecture of Open Source Applications) の [Nginx 章](https://aosabook.org/en/v2/nginx.html)．イベントエンジンの抽象と Linux 用 epoll 実装は https://github.com/nginx/nginx/blob/master/src/event/ngx_event.c と https://github.com/nginx/nginx/blob/master/src/event/modules/ngx_epoll_module.c にあります．
+worker 間の accept の分配は，以前は `accept_mutex` で調停していましたが，1.11.3 で既定が off になりました．`listen ... reuseport;` を指定すれば SO_REUSEPORT でカーネルに分配させることもできます．
 
 ### Node.js / libuv
 
@@ -971,7 +1038,7 @@ Node.js は V8 (JavaScript エンジン) と libuv (I/O ライブラリ) の組�
 - **デメリット**: シングルスレッドゆえ **CPU バウンドな処理が 1 つでも詰まるとイベントループ全体が止まる**．複数 CPU を使うには `cluster` モジュールや別プロセスに頼る．重い計算や同期 I/O は鬼門
 - **向くワークロード**: I/O バウンドな API サーバ，BFF (Backend for Frontend)，WebSocket / SSE のリアルタイムサーバ，CRUD 中心のサービス．リクエストごとの計算量が小さく，DB やキャッシュに広く問い合わせるタイプ
 
-リポジトリは [libuv/libuv](https://github.com/libuv/libuv) です．設計ドキュメントが秀逸で，イベントループの正確な振る舞いを学ぶなら [libuv の Design overview](https://docs.libuv.org/en/v1.x/design.html) が第一です．Linux 用イベント実装は https://github.com/libuv/libuv/blob/v1.x/src/unix/linux.c にあります．
+イベントループの正確な振る舞いは [libuv の Design overview](https://docs.libuv.org/en/v1.x/design.html) に詳しく書かれていました．
 
 ### Go の net/http と goroutine
 
@@ -999,12 +1066,6 @@ Go の `net.Conn.Read()` は見た目はブロッキングですが，実装は�
 - **デメリット**: GC 一時停止 (近年は十分小さいが完全にゼロではない)．ランタイムのオーバヘッド (数 MB)．一部のシステムプログラミング (リアルタイム要求，厳密なメモリ制御) には向かない．C ライブラリとの連携は cgo で重くなりがち
 - **向くワークロード**: マイクロサービス・API サーバ全般，gRPC サーバ，ネットワークプロキシ (Caddy，Traefik，Cloudflare の多くのコンポーネント)，CLI ツール．「I/O も CPU もそこそこ使う中規模サービス」のスイートスポット
 
-以下，資料がかなり読みやすいです．
-
-リポジトリと一次資料: https://github.com/golang/go
-netpoller の Linux 実装: https://github.com/golang/go/blob/master/src/runtime/netpoll_epoll.go
-HTTP サーバ: https://github.com/golang/go/blob/master/src/net/http/server.go
-スケジューラの内部については Ardan Labs の連載: https://www.ardanlabs.com/blog/2018/08/scheduling-in-go-part1.html
 
 ### 比較してどう選ぶか
 
@@ -1012,7 +1073,7 @@ HTTP サーバ: https://github.com/golang/go/blob/master/src/net/http/server.go
 
 | ユースケース                                      | 第一候補       | 理由                                 |
 | ------------------------------------------------- | -------------- | ------------------------------------ |
-| 静的ファイル / リバースプロキシ / TLS 終端        | Nginx          | 省メモリ，sendfile，設定が成熟       |
+| 静的ファイル / リバースプロキシ / TLS 終端        | Nginx          | 省メモリ，sendfile                   |
 | API ゲートウェイ / サービスメッシュデータプレーン | Envoy or Nginx | xDS, hot restart，多数接続           |
 | マイクロサービス API (中規模)                     | Go             | 並行性が書きやすく，起動も速い       |
 | BFF / リアルタイム / CRUD API                     | Node.js        | フロントと同言語，I/O バウンドに強い |
@@ -1031,7 +1092,7 @@ runqueue とロードバランスの仕組みは [カーネルスケジューラ
 - `nice` / `renice`: 優先度 (-20 〜 +19) を変更，CFS/EEVDF の重みに反映
 - `chrt`: リアルタイムスケジューリングポリシ (SCHED_FIFO, SCHED_RR) を設定
 
-NUMA マシンではメモリも CPU ノードに紐づいているため `numactl` も登場します．関連の包括的な資料は https://www.kernel.org/doc/html/latest/scheduler/index.html にあります．
+NUMA マシンではメモリも CPU ノードに紐づいているため `numactl` も登場します．
 
 ### スタックの確保
 
@@ -1096,24 +1157,24 @@ Nginx の `sendfile on;` はこれを使って静的ファイル配信を高速�
 - **RSS (Receive Side Scaling)**: NIC のハードウェア機能．パケットのフロー (4-tuple ハッシュ) ごとに別の受信キューに振り分け，別の CPU に割り込む．マルチキュー NIC が前提
 - **RPS / RFS**: ソフトウェアでの分散．RFS はアプリが動いている CPU に揃える
 
-これらが効くと「NIC 受信の段階で適切な CPU にパケットが届く」状態になり，キャッシュ局所性が改善します．Linux の scaling 文書がまとまっています: https://www.kernel.org/doc/html/latest/networking/scaling.html
+これらが効くと「NIC 受信の段階で適切な CPU にパケットが届く」状態になり，キャッシュ局所性が改善します．
 
 ### eBPF / XDP
 
 カーネル内に検証済みの小さなプログラムを差し込める仕組み．**XDP** は NIC ドライバの一番手前でパケットを処理でき，ロードバランサや DDoS 防御の高速化に使われます (Cloudflare の L4 LB [Unimog](https://blog.cloudflare.com/unimog-cloudflares-edge-load-balancer/)，Facebook の [Katran](https://github.com/facebookincubator/katran))．
 
-カーネルバイパス (DPDK) ほど過激ではなく，普通の Linux ネットワークスタックの上で動かせるのが eBPF/XDP の魅力です．Web サーバ本体ではなくその前段で活躍することが多いですが，「Web サーバの周辺技術」として知っておく価値があります．eBPF 全般の入門は https://ebpf.io/ が良い起点です．
+カーネルバイパス (DPDK) ほど過激ではなく，普通の Linux ネットワークスタックの上で動かせるのが eBPF/XDP の魅力です．Web サーバ本体ではなくその前段で活躍することが多いですが，「Web サーバの周辺技術」として知っておく価値があります．
 
 ## まとめ
 
-ここまで，NIC ドライバの少し上から Web アプリケーションランタイムまでを縦に貫いて見てきました．並べてみると，各実装は **OS が提供する抽象のうち何を選び，何を隠すか** で性格が決まっていることが分かります．
+NIC ドライバの少し上から Web アプリケーションランタイムまでを縦に見てきました．並べてみると，各実装はOS が提供する抽象のうち何を選び，何を隠すかで特性が決まっていることが分かります．
 
 - **Apache prefork**: プロセスの独立性と互換性を取り，スループットを犠牲にした
-- **Apache event / Nginx**: epoll を抱きしめ，イベントループ + 複数 worker でスケールさせた
+- **Apache event / Nginx**: epoll を活用し，イベントループ + 複数 worker でスケールさせた
 - **Node.js**: シングルスレッド + libuv で「JS の上での非同期」を最優先，CPU 並列は外側 (cluster，worker_threads，別プロセス) に逃がす
 - **Go**: epoll をランタイムに隠蔽し，開発者には「同期に見えるが大量に立てて良い軽量スレッド」を提供した
 
-どれも正解であり，ワークロードによって向き不向きがあります．
+ワークロードによって向き不向きがあり，ワークロードの特性を理解したうえで技術選定を行う必要があります．
 運用中のサーバで `ss`，`vmstat`，`perf` を眺めるときは，まず見るべき問いを具体化できることが重要です．
 たとえば「このプロセスは accept queue から取り出すスピードが追いついているか?」「コンテキストスイッチが多すぎないか?」を見ることです．
 さらに「fd はどれくらい掴んでいて，ソケットバッファをどれだけ使っているか?」「epoll を回しているのは何スレッドか?」「経路の MTU は揃っているか?」といった観点もあります．
