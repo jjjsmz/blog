@@ -257,6 +257,8 @@ net.ipv4.tcp_mem = 45300        60400   90600
 
 ### `strace` で覗く
 
+Nginx が動いているサーバで以下のように `strace` をかけると，システムコールの流れが見えます．`openat(2)` でファイルを開いている様子や，`write(2)` でアクセスログを書いている様子が見えます．
+
 ```text strace で Nginx のシステムコールを覗いてみる
 $ sudo strace -e trace=read,write,openat $(pgrep nginx | xargs printf -- '-p %s ')
 strace: Process 79456 attached
@@ -270,8 +272,6 @@ strace: Process 79456 attached
 [pid 79456] write(6, "2026/05/04 17:06:23 [error] 7945"..., 243) = 243
 [pid 79456] write(7, "127.0.0.1 - - [04/May/2026:17:06"..., 186) = 186
 ```
-
-Nginx が動いているサーバでこのように `strace` をかけると，システムコールの流れが見えます．`openat(2)` でファイルを開いている様子や，`write(2)` でアクセスログを書いている様子が見えます．
 
 ## ソケット，TCP/IP，MTU
 
