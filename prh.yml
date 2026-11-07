@@ -1,0 +1,105 @@
+version: 1
+# CLAUDE.md の「日本語の文章ルール」「使わない言い回し」のうち機械的に検出できるもの
+rules:
+  # 句読点
+  - expected: ，
+    pattern: 、
+  - expected: ．
+    pattern: 。
+
+  # 固有名詞 (大文字小文字を無視して照合．URL・パス・ファイル名の一部は除外)
+  # JSON は Python や Ruby のモジュール名 json と区別できないので入れていない
+  - expected: "GitHub"
+    pattern: /(?<![\w./@:-])GitHub(?![\w./@:-])/i
+  - expected: "GitLab"
+    pattern: /(?<![\w./@:-])GitLab(?![\w./@:-])/i
+  - expected: "JavaScript"
+    pattern: /(?<![\w./@:-])JavaScript(?![\w./@:-])/i
+  - expected: "TypeScript"
+    pattern: /(?<![\w./@:-])TypeScript(?![\w./@:-])/i
+  - expected: "Node.js"
+    pattern: /(?<![\w./@:-])Node\.js(?![\w./@:-])/i
+  - expected: "npm"
+    pattern: /(?<![\w./@:-])npm(?![\w./@:-])/i
+  - expected: "Python"
+    pattern: /(?<![\w./@:-])Python(?![\w./@:-])/i
+  - expected: "Cython"
+    pattern: /(?<![\w./@:-])Cython(?![\w./@:-])/i
+  - expected: "Docker"
+    pattern: /(?<![\w./@:-])Docker(?![\w./@:-])/i
+  - expected: "Podman"
+    pattern: /(?<![\w./@:-])Podman(?![\w./@:-])/i
+  - expected: "Kubernetes"
+    pattern: /(?<![\w./@:-])Kubernetes(?![\w./@:-])/i
+  - expected: "Linux"
+    pattern: /(?<![\w./@:-])Linux(?![\w./@:-])/i
+  - expected: "Ubuntu"
+    pattern: /(?<![\w./@:-])Ubuntu(?![\w./@:-])/i
+  - expected: "Fedora"
+    pattern: /(?<![\w./@:-])Fedora(?![\w./@:-])/i
+  - expected: "Debian"
+    pattern: /(?<![\w./@:-])Debian(?![\w./@:-])/i
+  - expected: "macOS"
+    pattern: /(?<![\w./@:-])macOS(?![\w./@:-])/i
+  - expected: "WSL"
+    pattern: /(?<![\w./@:-])WSL(?![\w./@:-])/i
+  - expected: "Cloudflare"
+    pattern: /(?<![\w./@:-])Cloudflare(?![\w./@:-])/i
+  - expected: "AWS"
+    pattern: /(?<![\w./@:-])AWS(?![\w./@:-])/i
+  - expected: "Firebase"
+    pattern: /(?<![\w./@:-])Firebase(?![\w./@:-])/i
+  - expected: "Heroku"
+    pattern: /(?<![\w./@:-])Heroku(?![\w./@:-])/i
+  - expected: "MySQL"
+    pattern: /(?<![\w./@:-])MySQL(?![\w./@:-])/i
+  - expected: "PostgreSQL"
+    pattern: /(?<![\w./@:-])PostgreSQL(?![\w./@:-])/i
+  - expected: "SQLite"
+    pattern: /(?<![\w./@:-])SQLite(?![\w./@:-])/i
+  - expected: "Redis"
+    pattern: /(?<![\w./@:-])Redis(?![\w./@:-])/i
+  - expected: "Astro"
+    pattern: /(?<![\w./@:-])Astro(?![\w./@:-])/i
+  - expected: "React"
+    pattern: /(?<![\w./@:-])React(?![\w./@:-])/i
+  - expected: "Next.js"
+    pattern: /(?<![\w./@:-])Next\.js(?![\w./@:-])/i
+  - expected: "Markdown"
+    pattern: /(?<![\w./@:-])Markdown(?![\w./@:-])/i
+  - expected: "MDX"
+    pattern: /(?<![\w./@:-])MDX(?![\w./@:-])/i
+  - expected: "Mermaid"
+    pattern: /(?<![\w./@:-])Mermaid(?![\w./@:-])/i
+  - expected: "Slack"
+    pattern: /(?<![\w./@:-])Slack(?![\w./@:-])/i
+  - expected: "Discord"
+    pattern: /(?<![\w./@:-])Discord(?![\w./@:-])/i
+  - expected: "Git"
+    pattern: /(?<![\w./@:-])Git(?![\w./@:-])/i
+  - expected: "OpenSSL"
+    pattern: /(?<![\w./@:-])OpenSSL(?![\w./@:-])/i
+  - expected: "HTML"
+    pattern: /(?<![\w./@:-])HTML(?![\w./@:-])/i
+  - expected: "CSS"
+    pattern: /(?<![\w./@:-])CSS(?![\w./@:-])/i
+  - expected: "YAML"
+    pattern: /(?<![\w./@:-])YAML(?![\w./@:-])/i
+  - expected: "SSL"
+    pattern: /(?<![\w./@:-])SSL(?![\w./@:-])/i
+  - expected: "TLS"
+    pattern: /(?<![\w./@:-])TLS(?![\w./@:-])/i
+  - expected: "WebSocket"
+    pattern: /(?<![\w./@:-])WebSocket(?![\w./@:-])/i
+  - expected: "Terraform"
+    pattern: /(?<![\w./@:-])Terraform(?![\w./@:-])/i
+  - expected: "systemd"
+    pattern: /(?<![\w./@:-])systemd(?![\w./@:-])/i
+  - expected: "Biome"
+    pattern: /(?<![\w./@:-])Biome(?![\w./@:-])/i
+  - expected: "textlint"
+    pattern: /(?<![\w./@:-])textlint(?![\w./@:-])/i
+  - expected: "VS Code"
+    pattern: /(?<![\w./@:-])VS ?Code(?![\w./@:-])/i
+  - expected: "Let's Encrypt"
+    pattern: /(?<![\w./@:-])Let.?s Encrypt(?![\w./@:-])/i

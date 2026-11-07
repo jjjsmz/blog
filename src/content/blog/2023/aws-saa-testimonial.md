@@ -10,7 +10,7 @@ tags: ['aws', 'certification']
 - 新卒 1 年目
 - 7 月に SRE へ配属
 - 経験
-  - aws はちょっと触ったことがある (EC2, SES, Route 53)
+  - AWS はちょっと触ったことがある (EC2, SES, Route 53)
   - インフラの知識もちょっとある (メールサーバ，Web サーバは構築したことある)
   - Linux(Unix)は好き
 

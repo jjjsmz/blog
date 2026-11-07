@@ -11,13 +11,13 @@ tags: ['astro', 'frontend']
 
 ## 使用技術
 
-- astro 4.1.2
+- Astro 4.1.2
   1 年前は 2.0.6 だったのに，もう 4.1.2 になっていた．
   更新がすごく早いですね．
 - Cloudflare Pages
   最近は Cloudflare をよくつかっています．
   Google Domains が終了してからドメインを Cloudflare に移管したり，個人の Web アプリを Cloudflared を使って公開したりと，ちょっとずつ使用率を増やしています．
-  IaC で管理するために，terraform で管理したいとも思っています．[cf-terraforming](https://github.com/cloudflare/cf-terraforming) を使うと楽そう．
+  IaC で管理するために，Terraform で管理したいとも思っています．[cf-terraforming](https://github.com/cloudflare/cf-terraforming) を使うと楽そう．
 
 - [Octicons](https://primer.style/foundations/icons/)
   シンプルで使いやすい．GitHub によって提供されている．
@@ -63,9 +63,9 @@ https://github.com/jjjsmz/blog/blob/4101e558e31471928781d55b708da8e88b2d468a/src
 
 ### og画像の生成
 
-`/src/pages/og/[...slug].webp.ts` に，`/src/pages/blog/[...slug].astro` の OGP 画像を生成するエンドポイントを作りました．実装としては，`satori-html` に html を渡して，svg を生成し，`sharp` で webp に変換しています．
+`/src/pages/og/[...slug].webp.ts` に，`/src/pages/blog/[...slug].astro` の OGP 画像を生成するエンドポイントを作りました．実装としては，`satori-html` に HTML を渡して，svg を生成し，`sharp` で webp に変換しています．
 
-astro でブログを作って公開している人たちにとても感謝しています．ありがとうございます！
+Astro でブログを作って公開している人たちにとても感謝しています．ありがとうございます！
 先人たちは，ビルド時に Google Fonts からフォントの URL を取得して，そのファイルをぶっこ抜いて，むりやり生成している例が多かったですが，私は，フォントはローカルに用意して置いたものを使ってます．
 
 https://github.com/jjjsmz/blog/blob/4101e558e31471928781d55b708da8e88b2d468a/src/pages/og/%5B...slug%5D.webp.ts#L1-L23

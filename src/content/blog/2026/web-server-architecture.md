@@ -1034,7 +1034,7 @@ Node.js は V8 (JavaScript エンジン) と libuv (I/O ライブラリ) の組�
 
 イベントループをブロックしうる仕事 (zlib 圧縮，一部の crypto，ファイル I/O など) はメインループから内部スレッドプール (`UV_THREADPOOL_SIZE`，デフォルト 4) に流されます．JavaScript 側からは callback や Promise として返ってきます．Node.js 10.5+ で利用可能な `worker_threads` を使えば，アプリケーション側でも本物の OS スレッドを立てられます．それぞれが独立した V8 isolate と libuv イベントループを持ち，`MessagePort` で通信します．
 
-- **メリット**: フロントエンドと同じ JavaScript/TypeScript で書ける．非同期 I/O が言語と標準ライブラリに統合されていて学習コストが低い．NPM の巨大エコシステム．軽量で起動が速いので FaaS と相性が良い
+- **メリット**: フロントエンドと同じ JavaScript/TypeScript で書ける．非同期 I/O が言語と標準ライブラリに統合されていて学習コストが低い．npm の巨大エコシステム．軽量で起動が速いので FaaS と相性が良い
 - **デメリット**: シングルスレッドゆえ **CPU バウンドな処理が 1 つでも詰まるとイベントループ全体が止まる**．複数 CPU を使うには `cluster` モジュールや別プロセスに頼る．重い計算や同期 I/O は鬼門
 - **向くワークロード**: I/O バウンドな API サーバ，BFF (Backend for Frontend)，WebSocket / SSE のリアルタイムサーバ，CRUD 中心のサービス．リクエストごとの計算量が小さく，DB やキャッシュに広く問い合わせるタイプ
 
