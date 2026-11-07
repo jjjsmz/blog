@@ -82738,5 +82738,35 @@
     "wg": "pce",
     "technology": "mpls-te",
     "subtopic": "pce"
+  },
+  {
+    "number": 10075,
+    "title": "The SNAC Router Flag in ICMPv6 Router Advertisement Messages",
+    "year": 2026,
+    "status": "PROPOSED STANDARD",
+    "stream": "IETF",
+    "wg": "6man",
+    "technology": "ipv6",
+    "subtopic": "6man"
+  },
+  {
+    "number": 10078,
+    "title": "Problem Statement, Gap Analysis, and Requirements for Intra-Domain Source Address Validation",
+    "year": 2026,
+    "status": "INFORMATIONAL",
+    "stream": "IETF",
+    "wg": "savnet",
+    "technology": "era-2020s",
+    "subtopic": "savnet"
+  },
+  {
+    "number": 10080,
+    "title": "Updated Use of the Expires Message Header Field",
+    "year": 2026,
+    "status": "PROPOSED STANDARD",
+    "stream": "IETF",
+    "wg": "mailmaint",
+    "technology": "smtp",
+    "subtopic": "mailmaint"
   }
 ]
