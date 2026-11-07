@@ -4,6 +4,10 @@
     "comments": true
   },
   "rules": {
+    // https://github.com/textlint-rule/textlint-rule-prh
+    "prh": {
+      "rulePaths": ["./prh.yml"]
+    },
     // https://github.com/textlint-ja/textlint-rule-preset-ja-spacing
     "ja-space-between-half-and-full-width": {
       "space": "always"
