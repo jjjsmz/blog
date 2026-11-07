@@ -1,16 +1,16 @@
 import rfcs from '../data/rfc.json';
 import {
   type GroupId,
-  type Technology,
   groups,
   layers,
   relations,
+  type Technology,
   technologies,
   technologyById,
   wgMap,
 } from '../data/rfc-taxonomy';
 
-export interface RfcEntry {
+interface RfcEntry {
   number: number;
   title: string;
   year: number;
@@ -33,16 +33,12 @@ for (const entry of entries) {
   else byTechnology.set(entry.technology, [entry]);
 }
 
-export function rfcsOf(technologyId: string): RfcEntry[] {
+function rfcsOf(technologyId: string): RfcEntry[] {
   return byTechnology.get(technologyId) ?? [];
 }
 
-export function countOf(technologyId: string): number {
+function countOf(technologyId: string): number {
   return byTechnology.get(technologyId)?.length ?? 0;
-}
-
-export function datatrackerUrl(number: number): string {
-  return `https://datatracker.ietf.org/doc/rfc${number}/`;
 }
 
 function subtopicHeading(entry: RfcEntry): string {
@@ -53,7 +49,7 @@ function subtopicHeading(entry: RfcEntry): string {
   return entry.subtopic;
 }
 
-export interface Subtopic {
+interface Subtopic {
   key: string;
   heading: string;
   rfcs: RfcEntry[];
@@ -79,20 +75,20 @@ export function subtopicsOf(technologyId: string): Subtopic[] {
   });
 }
 
-export function technologiesOf(groupId: GroupId): Technology[] {
+function technologiesOf(groupId: GroupId): Technology[] {
   return technologies.filter((t) => t.group === groupId);
 }
 
 /* ---------- data for the column tree ---------- */
 
 /** the first column: network layers first, then the other groups */
-export interface Band {
+interface Band {
   id: string;
   label: string;
   members: Technology[];
 }
 
-export function bands(): Band[] {
+function bands(): Band[] {
   const out: Band[] = layers.map((layer) => ({
     id: `band-${layer.id}`,
     label: layer.name,
@@ -112,7 +108,7 @@ export function bands(): Band[] {
 }
 
 /** technology id -> band id, so a related link can open the right branch */
-export function bandOfTechnology(): Record<string, string> {
+function bandOfTechnology(): Record<string, string> {
   const out: Record<string, string> = {};
   for (const band of bands()) {
     for (const tech of band.members) out[tech.id] = band.id;
@@ -149,4 +145,4 @@ export function treeData() {
   };
 }
 
-export { groups, layers, technologies, technologyById };
+export { technologies };

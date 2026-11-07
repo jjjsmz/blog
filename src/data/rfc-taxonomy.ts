@@ -851,5 +851,4 @@ export const relations: [string, string][] = [
   ['mobility', 'aaa'],
 ];
 
-export const groupById = new Map(groups.map((g) => [g.id, g]));
 export const technologyById = new Map(technologies.map((t) => [t.id, t]));
