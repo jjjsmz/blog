@@ -82740,6 +82740,36 @@
     "subtopic": "pce"
   },
   {
+    "number": 10069,
+    "title": "Managing Multiple Paths for a QUIC Connection",
+    "year": 2026,
+    "status": "PROPOSED STANDARD",
+    "stream": "IETF",
+    "wg": "quic",
+    "technology": "quic",
+    "subtopic": "quic"
+  },
+  {
+    "number": 10070,
+    "title": "Updates to OAuth 2.0 JSON Web Token (JWT) Client Authentication and Assertion-Based Authorization Grants",
+    "year": 2026,
+    "status": "PROPOSED STANDARD",
+    "stream": "IETF",
+    "wg": "oauth",
+    "technology": "oauth",
+    "subtopic": "oauth"
+  },
+  {
+    "number": 10073,
+    "title": "Composite Module-Lattice-Based Digital Signature Algorithm (ML-DSA) for Use in X.509 Public Key Infrastructure",
+    "year": 2026,
+    "status": "PROPOSED STANDARD",
+    "stream": "IETF",
+    "wg": "lamps",
+    "technology": "pkix",
+    "subtopic": "lamps"
+  },
+  {
     "number": 10075,
     "title": "The SNAC Router Flag in ICMPv6 Router Advertisement Messages",
     "year": 2026,
@@ -82768,5 +82798,15 @@
     "wg": "mailmaint",
     "technology": "smtp",
     "subtopic": "mailmaint"
+  },
+  {
+    "number": 10082,
+    "title": "Composite Module-Lattice-Based Digital Signature Algorithm (ML-DSA) for Use in the Cryptographic Message Syntax (CMS)",
+    "year": 2026,
+    "status": "PROPOSED STANDARD",
+    "stream": "IETF",
+    "wg": "lamps",
+    "technology": "pkix",
+    "subtopic": "lamps"
   }
 ]
