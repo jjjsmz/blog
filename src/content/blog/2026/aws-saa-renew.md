@@ -2,7 +2,7 @@
 title: AWS SAA を Skill Builder で更新してみた
 pubDate: 2026-11-21
 description: AWS Certified Solutions Architect - Associate の認定を，試験を受けずに AWS Skill Builder の「認定資格の維持」で 1 年延長しました．
-tags: ['aws']
+tags: ['aws', 'certification']
 ---
 
 AWS 認定の有効期限はだいたい 3 年です．[私が AWS SAA に合格してから](https://blog.jsmz.dev/blog/2023/aws-saa-testimonial/) 3 年が経とうとしており，せっかく取ったのに失効させるのはもったいないので更新することにしました．
