@@ -57270,16 +57270,6 @@
     "subtopic": "netext"
   },
   {
-    "number": 7390,
-    "title": "Group Communication for the Constrained Application Protocol (CoAP)",
-    "year": 2014,
-    "status": "EXPERIMENTAL",
-    "stream": "IETF",
-    "wg": "core",
-    "technology": "adhoc",
-    "subtopic": "core"
-  },
-  {
     "number": 7391,
     "title": "Forwarding and Control Element Separation (ForCES) Protocol Extensions",
     "year": 2014,
@@ -57848,16 +57838,6 @@
     "wg": "mboned",
     "technology": "multicast",
     "subtopic": "mboned"
-  },
-  {
-    "number": 7451,
-    "title": "Extension Registry for the Extensible Provisioning Protocol",
-    "year": 2015,
-    "status": "INFORMATIONAL",
-    "stream": "IETF",
-    "wg": "eppext",
-    "technology": "registry",
-    "subtopic": "eppext"
   },
   {
     "number": 7452,
@@ -70294,16 +70274,6 @@
     "subtopic": "pim"
   },
   {
-    "number": 8776,
-    "title": "Common YANG Data Types for Traffic Engineering",
-    "year": 2020,
-    "status": "PROPOSED STANDARD",
-    "stream": "IETF",
-    "wg": "teas",
-    "technology": "mpls-te",
-    "subtopic": "teas"
-  },
-  {
     "number": 8777,
     "title": "DNS Reverse IP Automatic Multicast Tunneling (AMT) Discovery",
     "year": 2020,
@@ -82440,6 +82410,26 @@
     "subtopic": "pim"
   },
   {
+    "number": 10020,
+    "title": "Group Communication for the Constrained Application Protocol (CoAP)",
+    "year": 2026,
+    "status": "PROPOSED STANDARD",
+    "stream": "IETF",
+    "wg": "core",
+    "technology": "adhoc",
+    "subtopic": "core"
+  },
+  {
+    "number": 10021,
+    "title": "Group Object Security for Constrained RESTful Environments (Group OSCORE)",
+    "year": 2026,
+    "status": "PROPOSED STANDARD",
+    "stream": "IETF",
+    "wg": "core",
+    "technology": "adhoc",
+    "subtopic": "core"
+  },
+  {
     "number": 10022,
     "title": "IMAP UIDBATCHES Extension",
     "year": 2026,
@@ -82710,6 +82700,36 @@
     "subtopic": "tsvwg"
   },
   {
+    "number": 10056,
+    "title": "Common YANG Data Types for Traffic Engineering",
+    "year": 2026,
+    "status": "PROPOSED STANDARD",
+    "stream": "IETF",
+    "wg": "teas",
+    "technology": "mpls-te",
+    "subtopic": "teas"
+  },
+  {
+    "number": 10057,
+    "title": "A YANG Data Model for Traffic Engineering Tunnels, Label Switched Paths, and Interfaces",
+    "year": 2026,
+    "status": "PROPOSED STANDARD",
+    "stream": "IETF",
+    "wg": "teas",
+    "technology": "mpls-te",
+    "subtopic": "teas"
+  },
+  {
+    "number": 10063,
+    "title": "Near Real Time Mirroring (NRTM) Version 4",
+    "year": 2026,
+    "status": "PROPOSED STANDARD",
+    "stream": "IETF",
+    "wg": "grow",
+    "technology": "routing-bgp",
+    "subtopic": "grow"
+  },
+  {
     "number": 10065,
     "title": "A YANG Data Model and RADIUS Extension for Policy-Based Network Access Control",
     "year": 2026,
@@ -82790,6 +82810,16 @@
     "subtopic": "savnet"
   },
   {
+    "number": 10079,
+    "title": "Updates to the SFrame Cipher Suites Registry",
+    "year": 2026,
+    "status": "PROPOSED STANDARD",
+    "stream": "IETF",
+    "wg": null,
+    "technology": "era-2020s",
+    "subtopic": "none"
+  },
+  {
     "number": 10080,
     "title": "Updated Use of the Expires Message Header Field",
     "year": 2026,
@@ -82808,5 +82838,45 @@
     "wg": "lamps",
     "technology": "pkix",
     "subtopic": "lamps"
+  },
+  {
+    "number": 10087,
+    "title": "Extensible Provisioning Protocol (EPP) Transport over QUIC",
+    "year": 2026,
+    "status": "PROPOSED STANDARD",
+    "stream": "IETF",
+    "wg": "regext",
+    "technology": "registry",
+    "subtopic": "regext"
+  },
+  {
+    "number": 10091,
+    "title": "Extension Registry for the Extensible Provisioning Protocol",
+    "year": 2026,
+    "status": "BEST CURRENT PRACTICE",
+    "stream": "IETF",
+    "wg": "regext",
+    "technology": "registry",
+    "subtopic": "regext"
+  },
+  {
+    "number": 10094,
+    "title": "Clarifying Segment Routing over IPv6 (SRv6) Segment Identifier (SID) List Processing",
+    "year": 2026,
+    "status": "PROPOSED STANDARD",
+    "stream": "IETF",
+    "wg": "6man",
+    "technology": "ipv6",
+    "subtopic": "6man"
+  },
+  {
+    "number": 10097,
+    "title": "Tiebreaking Resource Public Key Infrastructure (RPKI) Trust Anchors",
+    "year": 2026,
+    "status": "PROPOSED STANDARD",
+    "stream": "IETF",
+    "wg": "sidrops",
+    "technology": "routing-bgp",
+    "subtopic": "sidrops"
   }
 ]
